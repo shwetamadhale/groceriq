@@ -1,72 +1,55 @@
+// smartgrocery/backend/app.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const { ClerkExpressRequireAuth } = require("@clerk/clerk-sdk-node"); // Add this
 require("dotenv").config();
 
 const app = express();
-app.use(cors({ origin: "http://localhost:3000" }));
+
+// Middleware
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 
+// Database connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB error:", err));
 
-const GroceryItem = require("./models/GroceryItem"); // <- Move grocery schema into its own file
-const UserPreferences = require("./models/UserPreferences");
+// Routes (now protected with Clerk)
+const preferencesRouter = require("./routes/preferences");
+const groceryRouter = require("./routes/grocery");
+const budgetRouter = require("./routes/budget");
+const aiRouter = require("./routes/ai");
 
-// Save or update user preferences
-app.post("/api/preferences", async (req, res) => {
-  const { clerkUserId, ...preferencesData } = req.body;
+// Apply Clerk middleware to all API routes
+app.use("/api/preferences", ClerkExpressRequireAuth(), preferencesRouter);
+app.use("/api/grocery", ClerkExpressRequireAuth(), groceryRouter);
+app.use("/api/budget", ClerkExpressRequireAuth(), budgetRouter);
+app.use("/api/ai", ClerkExpressRequireAuth(), aiRouter);
 
-  try {
-    let userPrefs = await UserPreferences.findOne({ clerkUserId });
-
-    if (userPrefs) {
-      userPrefs = await UserPreferences.findOneAndUpdate(
-        { clerkUserId },
-        preferencesData,
-        { new: true }
-      );
-    } else {
-      userPrefs = new UserPreferences({ clerkUserId, ...preferencesData });
-      await userPrefs.save();
-    }
-
-    res.status(200).json(userPrefs);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Health check (public route)
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    timestamp: new Date().toISOString()
+  });
 });
 
-// GET preferences for user
-app.get("/api/preferences/:clerkUserId", async (req, res) => {
-  try {
-    const userPrefs = await UserPreferences.findOne({ clerkUserId: req.params.clerkUserId });
-    if (!userPrefs) return res.status(404).json({ message: "Preferences not found" });
-    res.json(userPrefs);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+    error: process.env.NODE_ENV === "development" ? err.message : undefined
+  });
 });
 
-// Create new grocery item
-app.post("/api/grocery", async (req, res) => {
-  try {
-    const newItem = new GroceryItem(req.body); // contains clerkUserId
-    await newItem.save();
-    res.status(201).json(newItem);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// Get all grocery items for a user
-app.get("/api/grocery/:clerkUserId", async (req, res) => {
-  try {
-    const items = await GroceryItem.find({ clerkUserId: req.params.clerkUserId });
-    res.json(items);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

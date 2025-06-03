@@ -1,30 +1,32 @@
+// smartgrocery/client/src/components/RequiresOnboarding.js
 import React, { useEffect, useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const RequireOnboarding = ({ children }) => {
-  const { user, isLoaded } = useUser();
+  const { userId } = useAuth();
   const navigate = useNavigate();
-  const [checking, setChecking] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoaded) return; // wait until user is loaded
+    const checkOnboarding = async () => {
+      try {
+        const response = await axios.get(`http://localhost:4000/api/user/${userId}/onboarding-status`);
+        if (!response.data.completed) {
+          navigate("/preferences", { replace: true });
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        navigate("/preferences", { replace: true });
+      }
+    };
 
-    const prefs = user?.publicMetadata?.preferences;
-    const budget = user?.publicMetadata?.budget;
+    checkOnboarding();
+  }, [userId, navigate]);
 
-    if (!prefs || !budget) {
-      // If onboarding incomplete, redirect
-      navigate("/preferences", { replace: true });
-    } else {
-      // Onboarding complete, allow access
-      setChecking(false);
-    }
-  }, [user, isLoaded, navigate]);
-
-  if (!isLoaded || checking) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <div>Loading...</div>;
 
   return <>{children}</>;
 };

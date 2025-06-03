@@ -1,44 +1,110 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
+import axios from 'axios';
+import {
+  Slider,
+  Typography,
+  Button,
+  Container,
+  Box,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material';
 
-export default function Budget({ onBack, onSubmit }) {
+const Budget = () => {
+  const { user } = useUser();
+  const navigate = useNavigate();
   const [budgetData, setBudgetData] = useState({
-    durationWeeks: 4,
-    amount: 100,
+    amount: 5000, // Default ₹5000
+    duration: 'weekly', // weekly/monthly
+    priority: 'balanced' // budget/health/savings
   });
 
-  const handleSubmit = () => {
-    onSubmit(budgetData);
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    // Save preferences and budget separately
+    await Promise.all([
+      axios.post('http://localhost:4000/api/preferences', {
+        userId: user.id,
+        ...preferencesData // Your form data
+      }),
+      axios.post('http://localhost:4000/api/budget', {
+        userId: user.id,
+        ...budgetData
+      })
+    ]);
+
+    // Then trigger AI processing
+    const response = await axios.post('http://localhost:4000/api/ai/generate-list', {
+      userId: user.id
+    });
+
+    navigate('/dashboard', { state: { suggestions: response.data } });
+  } catch (error) {
+    console.error('Submission error:', error);
+    // Add user-friendly error display
+  }
+};
 
   return (
-    <div style={{ maxWidth: 600, margin: "auto" }}>
-      <h2>Set Your Budget</h2>
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Typography variant="h4" gutterBottom>Set Your Grocery Budget</Typography>
+      
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+        {/* Budget Amount Slider */}
+        <Typography gutterBottom>Monthly Budget: ₹{budgetData.amount}</Typography>
+        <Slider
+          value={budgetData.amount}
+          min={1000}
+          max={20000}
+          step={500}
+          onChange={(e, val) => setBudgetData({...budgetData, amount: val})}
+          sx={{ mb: 3 }}
+        />
 
-      <label>Budget Duration (weeks): {budgetData.durationWeeks}</label>
-      <input
-        type="range"
-        min={1}
-        max={12}
-        value={budgetData.durationWeeks}
-        onChange={(e) => setBudgetData({ ...budgetData, durationWeeks: +e.target.value })}
-      />
+        {/* Budget Duration */}
+        <FormControl fullWidth sx={{ mb: 3 }}>
+          <InputLabel>Budget Duration</InputLabel>
+          <Select
+            value={budgetData.duration}
+            label="Budget Duration"
+            onChange={(e) => setBudgetData({...budgetData, duration: e.target.value})}
+          >
+            <MenuItem value="weekly">Weekly</MenuItem>
+            <MenuItem value="monthly">Monthly</MenuItem>
+          </Select>
+        </FormControl>
 
-      <label style={{ marginTop: 20 }}>Budget Amount ($): {budgetData.amount}</label>
-      <input
-        type="range"
-        min={10}
-        max={1000}
-        step={10}
-        value={budgetData.amount}
-        onChange={(e) => setBudgetData({ ...budgetData, amount: +e.target.value })}
-      />
+        {/* Spending Priority */}
+        <FormControl fullWidth sx={{ mb: 3 }}>
+          <InputLabel>Spending Priority</InputLabel>
+          <Select
+            value={budgetData.priority}
+            label="Spending Priority"
+            onChange={(e) => setBudgetData({...budgetData, priority: e.target.value})}
+          >
+            <MenuItem value="balanced">Balanced</MenuItem>
+            <MenuItem value="health">Health Focus</MenuItem>
+            <MenuItem value="savings">Max Savings</MenuItem>
+          </Select>
+        </FormControl>
 
-      <div style={{ marginTop: 30 }}>
-        <button onClick={onBack}>Back: Preferences</button>
-        <button onClick={handleSubmit} style={{ marginLeft: 10 }}>
-          Save & Continue
-        </button>
-      </div>
-    </div>
+        <Button 
+          type="submit" 
+          variant="contained" 
+          size="large"
+          fullWidth
+        >
+          Generate Smart Grocery List
+        </Button>
+      </Box>
+    </Container>
   );
-}
+};
+
+export default Budget;

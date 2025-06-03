@@ -1,240 +1,150 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
+import axios from 'axios';
+import {
+  Slider,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Checkbox,
+  ListItemText,
+  Button,
+  Typography
+} from '@mui/material';
 
-const CUISINES = ["Italian", "Chinese", "Mexican", "Indian", "Thai"];
-const ALLERGIES = ["None", "Peanuts", "Dairy", "Gluten", "Shellfish"];
-const DIETS = ["No diet", "Keto", "Vegetarian", "Pescetarian", "Vegan"];
+// Constants for dropdown options
+const DIET_OPTIONS = ['Vegetarian', 'Vegan', 'Keto', 'Paleo', 'Pescetarian', 'None'];
+const ALLERGY_OPTIONS = ['Dairy', 'Nuts', 'Gluten', 'Shellfish', 'Soy', 'Eggs', 'None'];
+const MEAL_FREQUENCY = ['Daily', 'Weekly', 'Monthly', 'Rarely'];
 
-export default function Preferences({ onNext }) {
-  const [form, setForm] = useState({
-    favoriteCuisines: [],
-    customCuisine: "",
+const Preferences = () => {
+  const { user } = useUser();
+  const navigate = useNavigate();
+
+  // Form state
+  const [formData, setFormData] = useState({
+    diets: [],
     allergies: [],
-    customAllergy: "",
-    diet: "No diet",
-    customDiet: "",
     flavorProfile: {
-      spicy: 1,
-      sweet: 1,
-      savory: 1,
-      sour: 1,
-      salty: 1,
+      spicy: 2, // 1-3 scale
+      sweet: 2,
+      savory: 2,
+      sour: 2,
+      salty: 2
     },
-    staplePreferences: "",
-    mealPreferences: {
-      breakfast: 0,
-      lunch: 0,
-      dinner: 0,
-      snacks: 0,
+    mealFrequency: {
+      breakfast: 'Weekly',
+      lunch: 'Daily',
+      dinner: 'Daily',
+      snacks: 'Weekly'
     },
-    cookingSkills: "Beginner",
-    toolsAvailable: [],
+    cookingSkill: 'Intermediate',
+    tools: ['Oven', 'Microwave']
   });
 
-  // Helper: toggle multi-select arrays (cuisines, allergies, tools)
-  const toggleArrayValue = (key, value) => {
-    setForm((f) => {
-      const arr = f[key];
-      if (arr.includes(value)) {
-        return { ...f, [key]: arr.filter((v) => v !== value) };
-      } else {
-        return { ...f, [key]: [...arr, value] };
-      }
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('http://localhost:4000/api/preferences', {
+        userId: user.id,
+        ...formData
+      });
+      navigate('/budget');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+    }
   };
 
-  // Tools list
-  const TOOLS = ["Oven", "Microwave", "Air Fryer", "Blender", "Instant Pot", "Grill", "N/A"];
-
-  // Cooking skill options
-  const COOKING_SKILLS = ["Beginner", "Intermediate", "Advanced"];
-
-  const handleFlavorChange = (flavor, val) => {
-    setForm((f) => ({
-      ...f,
-      flavorProfile: {
-        ...f.flavorProfile,
-        [flavor]: val,
-      },
+  const handleFlavorChange = (flavor, value) => {
+    setFormData(prev => ({
+      ...prev,
+      flavorProfile: { ...prev.flavorProfile, [flavor]: value }
     }));
-  };
-
-  const handleMealPrefChange = (meal, val) => {
-    setForm((f) => ({
-      ...f,
-      mealPreferences: {
-        ...f.mealPreferences,
-        [meal]: val,
-      },
-    }));
-  };
-
-  // On Next click: prepare data (combine custom inputs with dropdowns)
-  const handleNext = () => {
-    const data = {
-      favoriteCuisines: form.favoriteCuisines.concat(form.customCuisine ? [form.customCuisine] : []),
-      allergies: form.allergies.includes("None") && form.allergies.length === 1
-        ? []
-        : form.allergies.concat(form.customAllergy ? [form.customAllergy] : []),
-      diet: form.customDiet || form.diet,
-      flavorProfile: form.flavorProfile,
-      staplePreferences: form.staplePreferences,
-      mealPreferences: form.mealPreferences,
-      cookingSkills: form.cookingSkills,
-      toolsAvailable: form.toolsAvailable,
-    };
-    onNext(data);
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: "auto" }}>
-      <h2>User Preferences</h2>
+    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+      <Typography variant="h4" gutterBottom>Your Dietary Preferences</Typography>
+      
+      <form onSubmit={handleSubmit}>
+        {/* Diet Selection */}
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Dietary Preferences</InputLabel>
+          <Select
+            multiple
+            value={formData.diets}
+            onChange={(e) => setFormData({...formData, diets: e.target.value})}
+            renderValue={(selected) => selected.join(', ')}
+          >
+            {DIET_OPTIONS.map((diet) => (
+              <MenuItem key={diet} value={diet}>
+                <Checkbox checked={formData.diets.includes(diet)} />
+                <ListItemText primary={diet} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-      <label>Favorite Cuisines (multi-select):</label>
-      <div>
-        {CUISINES.map((c) => (
-          <label key={c} style={{ marginRight: 10 }}>
-            <input
-              type="checkbox"
-              checked={form.favoriteCuisines.includes(c)}
-              onChange={() => toggleArrayValue("favoriteCuisines", c)}
+        {/* Allergies */}
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Allergies/Restrictions</InputLabel>
+          <Select
+            multiple
+            value={formData.allergies}
+            onChange={(e) => setFormData({...formData, allergies: e.target.value})}
+            renderValue={(selected) => selected.join(', ')}
+          >
+            {ALLERGY_OPTIONS.map((allergy) => (
+              <MenuItem key={allergy} value={allergy}>
+                <Checkbox checked={formData.allergies.includes(allergy)} />
+                <ListItemText primary={allergy} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Flavor Profile */}
+        <Typography variant="h6" gutterBottom style={{ marginTop: '2rem' }}>
+          Flavor Preferences
+        </Typography>
+        
+        {['spicy', 'sweet', 'savory', 'sour', 'salty'].map((flavor) => (
+          <div key={flavor} style={{ marginBottom: '1rem' }}>
+            <Typography gutterBottom>
+              {flavor.charAt(0).toUpperCase() + flavor.slice(1)}: 
+              {formData.flavorProfile[flavor] === 1 && ' Low'}
+              {formData.flavorProfile[flavor] === 2 && ' Medium'}
+              {formData.flavorProfile[flavor] === 3 && ' High'}
+            </Typography>
+            <Slider
+              value={formData.flavorProfile[flavor]}
+              min={1}
+              max={3}
+              step={1}
+              onChange={(e, val) => handleFlavorChange(flavor, val)}
+              marks={[
+                { value: 1, label: 'Low' },
+                { value: 2, label: 'Medium' },
+                { value: 3, label: 'High' }
+              ]}
             />
-            {c}
-          </label>
+          </div>
         ))}
-        <input
-          type="text"
-          placeholder="Add custom cuisine"
-          value={form.customCuisine}
-          onChange={(e) => setForm({ ...form, customCuisine: e.target.value })}
-          style={{ marginLeft: 10 }}
-        />
-      </div>
 
-      <label>Allergies (multi-select):</label>
-      <div>
-        {ALLERGIES.map((a) => (
-          <label key={a} style={{ marginRight: 10 }}>
-            <input
-              type="checkbox"
-              checked={form.allergies.includes(a)}
-              onChange={() => {
-                if (a === "None") {
-                  // If None selected, reset all other allergies
-                  setForm({ ...form, allergies: ["None"] });
-                } else {
-                  setForm((f) => {
-                    let newAllergies = [...f.allergies];
-                    if (newAllergies.includes("None")) {
-                      newAllergies = newAllergies.filter((x) => x !== "None");
-                    }
-                    if (newAllergies.includes(a)) {
-                      newAllergies = newAllergies.filter((x) => x !== a);
-                    } else {
-                      newAllergies.push(a);
-                    }
-                    return { ...f, allergies: newAllergies };
-                  });
-                }
-              }}
-            />
-            {a}
-          </label>
-        ))}
-        <input
-          type="text"
-          placeholder="Add custom allergy"
-          value={form.customAllergy}
-          onChange={(e) => setForm({ ...form, customAllergy: e.target.value })}
-          style={{ marginLeft: 10 }}
-        />
-      </div>
-
-      <label>Diet:</label>
-      <select
-        value={form.diet}
-        onChange={(e) => setForm({ ...form, diet: e.target.value, customDiet: "" })}
-      >
-        {DIETS.map((d) => (
-          <option key={d} value={d}>
-            {d}
-          </option>
-        ))}
-      </select>
-      <input
-        type="text"
-        placeholder="Add custom diet"
-        value={form.customDiet}
-        onChange={(e) => setForm({ ...form, customDiet: e.target.value })}
-        style={{ marginLeft: 10 }}
-      />
-
-      <h3>Flavor Profile (1 = Mild/Low to 3 = High/Intense)</h3>
-      {["spicy", "sweet", "savory", "sour", "salty"].map((flavor) => (
-        <div key={flavor}>
-          <label style={{ textTransform: "capitalize" }}>{flavor}:</label>
-          <input
-            type="range"
-            min={1}
-            max={3}
-            value={form.flavorProfile[flavor]}
-            onChange={(e) => handleFlavorChange(flavor, +e.target.value)}
-          />
-          <span style={{ marginLeft: 10 }}>{form.flavorProfile[flavor]}</span>
-        </div>
-      ))}
-
-      <label>Staple Preferences (comma separated):</label>
-      <input
-        type="text"
-        placeholder="e.g. rice, bread, eggs"
-        value={form.staplePreferences}
-        onChange={(e) => setForm({ ...form, staplePreferences: e.target.value })}
-        style={{ width: "100%" }}
-      />
-
-      <h3>Meal Preferences - frequency cooked per week (0-7)</h3>
-      {["breakfast", "lunch", "dinner", "snacks"].map((meal) => (
-        <div key={meal}>
-          <label style={{ textTransform: "capitalize" }}>{meal}:</label>
-          <input
-            type="number"
-            min={0}
-            max={7}
-            value={form.mealPreferences[meal]}
-            onChange={(e) => handleMealPrefChange(meal, +e.target.value)}
-          />
-        </div>
-      ))}
-
-      <label>Cooking Skills:</label>
-      <select
-        value={form.cookingSkills}
-        onChange={(e) => setForm({ ...form, cookingSkills: e.target.value })}
-      >
-        {COOKING_SKILLS.map((skill) => (
-          <option key={skill} value={skill}>
-            {skill}
-          </option>
-        ))}
-      </select>
-
-      <label>Tools Available (multi-select):</label>
-      <div>
-        {TOOLS.map((tool) => (
-          <label key={tool} style={{ marginRight: 10 }}>
-            <input
-              type="checkbox"
-              checked={form.toolsAvailable.includes(tool)}
-              onChange={() => toggleArrayValue("toolsAvailable", tool)}
-            />
-            {tool}
-          </label>
-        ))}
-      </div>
-
-      <button onClick={handleNext} style={{ marginTop: 20 }}>
-        Next: Budget
-      </button>
+        <Button 
+          type="submit" 
+          variant="contained" 
+          color="primary"
+          size="large"
+          style={{ marginTop: '2rem' }}
+        >
+          Save Preferences
+        </Button>
+      </form>
     </div>
   );
-}
+};
+
+export default Preferences;

@@ -1,31 +1,32 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const preferencesSchema = new mongoose.Schema({
-  clerkUserId: { type: String, required: true, unique: true },
-  favoriteCuisines: [String],
-  allergies: [String],
-  diet: String,
-  flavorProfile: {
-    spicy: Number,
-    sweet: Number,
-    savory: Number,
-    sour: Number,
-    salty: Number,
+const preferenceSchema = new mongoose.Schema({
+  userId: { 
+    type: String, 
+    required: true,
+    unique: true 
   },
-  staples: [String],
-  mealPreferences: {
-    breakfast: Number,
-    lunch: Number,
-    dinner: Number,
-    snacks: Number,
+  diets: [String],
+  allergies: [String],
+  flavorProfile: {
+    spicy: { type: Number, min: 1, max: 3 },
+    sweet: { type: Number, min: 1, max: 3 },
+    savory: { type: Number, min: 1, max: 3 },
+    sour: { type: Number, min: 1, max: 3 },
+    salty: { type: Number, min: 1, max: 3 }
+  },
+  mealFrequency: {
+    breakfast: String,
+    lunch: String,
+    dinner: String,
+    snacks: String
   },
   cookingSkill: String,
-  toolsAvailable: [String],
-  budget: {
-    durationDays: Number,
-    amount: Number,
-  },
-  hasCompletedOnboarding: { type: Boolean, default: false }
-}, { timestamps: true });
+  tools: [String],
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  }
+});
 
-module.exports = mongoose.model("UserPreferences", preferencesSchema);
+module.exports = mongoose.model('UserPreferences', preferenceSchema);

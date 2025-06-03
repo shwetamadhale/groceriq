@@ -1,103 +1,60 @@
-import { SignedIn, SignedOut } from "@clerk/clerk-react";
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-
+// smartgrocery/client/src/App.js
+import { useUser } from "@clerk/clerk-react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import RequireOnboarding from "./components/RequiresOnboarding";
-
-import LoginPage from "./pages/LoginPage";
-import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
 import Preferences from "./pages/Preferences";
 import Budget from "./pages/Budget";
-import Dashboard from "./pages/Dashboard";
-import Analytics from "./pages/Analytics";
-import Profile from "./pages/Profile";
+import LoginPage from "./pages/LoginPage";
+import Register from "./pages/Register";
 
 function App() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const noNavbarPaths = ["/login", "/register"];
+  const { isSignedIn } = useUser();
 
   return (
     <>
-      {!noNavbarPaths.includes(location.pathname) && <Navbar />}
-
+      {isSignedIn && <Navbar />}
+      
       <Routes>
-        <Route path="/login/*" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<Register />} />
 
+        {/* Protected Routes */}
         <Route
           path="/preferences"
           element={
-            <SignedIn>
-              <Preferences
-                onNext={(data) => {
-                  console.log("Preferences data:", data);
-                  // TODO: Save preferences data to backend or global state here
-                  navigate("/budget");
-                }}
-              />
-            </SignedIn>
+            <RequireOnboarding>
+              <Preferences />
+            </RequireOnboarding>
           }
         />
-
         <Route
           path="/budget"
           element={
-            <SignedIn>
-              <Budget
-                onBack={() => navigate("/preferences")}
-                onSubmit={(budgetData) => {
-                  console.log("Budget data:", budgetData);
-                  // TODO: Save budget data to backend or global state here
-                  navigate("/dashboard");
-                }}
-              />
-            </SignedIn>
+            <RequireOnboarding>
+              <Budget />
+            </RequireOnboarding>
           }
         />
-
         <Route
           path="/dashboard"
           element={
-            <SignedIn>
-              <RequireOnboarding>
-                <Dashboard />
-              </RequireOnboarding>
-            </SignedIn>
-          }
-        />
-        <Route
-          path="/analytics"
-          element={
-            <SignedIn>
-              <RequireOnboarding>
-                <Analytics />
-              </RequireOnboarding>
-            </SignedIn>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <SignedIn>
-              <RequireOnboarding>
-                <Profile />
-              </RequireOnboarding>
-            </SignedIn>
+            <RequireOnboarding>
+              <Dashboard />
+            </RequireOnboarding>
           }
         />
 
+        {/* Redirects */}
         <Route
           path="/"
           element={
-            <>
-              <SignedIn>
-                <Navigate to="/dashboard" />
-              </SignedIn>
-              <SignedOut>
-                <Navigate to="/login" />
-              </SignedOut>
-            </>
+            isSignedIn ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         />
       </Routes>
