@@ -1,24 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import Onboarding from './pages/Onboarding';
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+
+const theme = createTheme();
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={
+            <>
+              <SignedIn>
+                <Dashboard />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          } />
+          <Route path="/onboarding" element={
+            <SignedIn>
+              <Onboarding />
+            </SignedIn>
+          } />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
