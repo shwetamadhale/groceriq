@@ -1,16 +1,33 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const Preferences = require('../models/UserPreferences');
+import Preference from '../models/Preference.js';
 
+// POST /api/preferences - Save user preferences
 router.post('/', async (req, res) => {
   try {
-    const newPreferences = new Preferences(req.body);
-    await newPreferences.save();
-    res.json({ message: 'Preferences saved successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    const { userId, preferences } = req.body;
+
+    if (!userId || !preferences) {
+      return res.status(400).json({ message: 'Missing userId or preferences' });
+    }
+
+    let preference = await Preference.findOne({ userId });
+
+    if (preference) {
+      // Update existing preferences
+      preference.preferences = preferences;
+      await preference.save();
+    } else {
+      // Create new preference
+      preference = new Preference({ userId, preferences });
+      await preference.save();
+    }
+
+    res.status(200).json({ message: 'Preferences saved', preference });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-module.exports = router;
+export default router;
