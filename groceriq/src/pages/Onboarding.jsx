@@ -113,7 +113,41 @@ const Onboarding = () => {
         </div>
       </div>
     )}
-        {step === 4 && <p>💰 Budget & Duration (Step 4)</p>}
+      {step === 4 && (
+  <div>
+    <h2 className="text-xl font-semibold mb-6">Budget Preferences</h2>
+
+    {/* Budget Slider */}
+    <div className="mb-6">
+      <label className="block mb-2 font-medium">Your Budget (USD)</label>
+      <input
+        type="range"
+        min="10"
+        max="500"
+        step="10"
+        defaultValue="100"
+        className="w-full accent-orange-500"
+        onChange={(e) => document.getElementById("budgetVal").textContent = `$${e.target.value}`}
+      />
+      <div className="text-right text-sm text-orange-600 mt-1">
+        <span id="budgetVal">$100</span>
+      </div>
+    </div>
+
+    {/* Duration Selector */}
+    <div>
+      <label className="block mb-2 font-medium">For how long is this budget?</label>
+      <select className="w-full px-4 py-2 border rounded-lg">
+        <option value="weekly">Weekly</option>
+        <option value="biweekly">Biweekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+  </div>
+)}
+
+        
         {step === 5 && <p>🤖 AI Suggestions or Skip (Step 5)</p>}
 
         {/* NAVIGATION */}
