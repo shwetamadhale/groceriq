@@ -50,7 +50,29 @@ const Onboarding = () => {
         )}
 
         {/* NEXT STEPS... Placeholder */}
-        {step === 2 && <p>🎛️ Flavor Profile (Step 2)</p>}
+        {step === 2 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-6">Flavor Profile</h2>
+            {["Spice", "Salt", "Tang", "Sweet", "Umami"].map((flavor) => (
+              <div key={flavor} className="mb-6">
+                <label className="block mb-2 font-medium">{flavor} Level</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  defaultValue="5"
+                  className="w-full accent-orange-500"
+                />
+                <div className="flex justify-between text-sm text-gray-500 mt-1">
+                  <span>Low</span>
+                  <span>Medium</span>
+                  <span>High</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {step === 3 && <p>👩‍🍳 Cooking Skills & Tools (Step 3)</p>}
         {step === 4 && <p>💰 Budget & Duration (Step 4)</p>}
         {step === 5 && <p>🤖 AI Suggestions or Skip (Step 5)</p>}
