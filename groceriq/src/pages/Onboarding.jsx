@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
+  const navigate = useNavigate();
 
   const next = () => setStep((prev) => Math.min(prev + 1, 5));
   const prev = () => setStep((prev) => Math.max(prev - 1, 1));
@@ -148,7 +150,33 @@ const Onboarding = () => {
 )}
 
         
-        {step === 5 && <p>🤖 AI Suggestions or Skip (Step 5)</p>}
+        {step === 5 && (
+  <div>
+    <h2 className="text-xl font-semibold mb-6">You're all set!</h2>
+    <p className="mb-6 text-gray-600">
+      Would you like GrocerIQ to give you smart suggestions on what to stock up
+      on based on your preferences?
+    </p>
+
+    <div className="flex flex-col md:flex-row gap-4">
+      <button
+        type="button"
+        onClick={() => navigate("/suggest")}
+        className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+      >
+        ✅ Yes, show AI Suggestions
+      </button>
+      <button
+        type="button"
+        onClick={() => navigate("/dashboard")}
+        className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition"
+      >
+        🚪 Skip, take me to Dashboard
+      </button>
+    </div>
+  </div>
+)}
+
 
         {/* NAVIGATION */}
         <div className="mt-8 flex justify-between">
