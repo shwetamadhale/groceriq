@@ -1,7 +1,38 @@
 import { useState } from "react";
+import { auth } from "../firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
 const Auth = () => {
   const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (mode === "signup" && password !== confirm) {
+      return setError("Passwords do not match.");
+    }
+
+    try {
+      if (mode === "login") {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+
+      alert("Success! 🎉");
+      // TODO: Redirect to dashboard
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-orange-50 px-4">
@@ -10,31 +41,47 @@ const Auth = () => {
           {mode === "login" ? "Login to GrocerIQ" : "Create Your Account"}
         </h2>
 
-        <form className="space-y-4">
+        {error && (
+          <p className="text-sm text-red-500 mb-4 text-center">{error}</p>
+        )}
+
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium">Email</label>
             <input
               type="email"
               placeholder="you@example.com"
-              className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full mt-1 px-4 py-2 border rounded-lg"
+              required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium">Password</label>
             <input
               type="password"
               placeholder="••••••••"
-              className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full mt-1 px-4 py-2 border rounded-lg"
+              required
             />
           </div>
 
           {mode === "signup" && (
             <div>
-              <label className="block text-sm font-medium">Confirm Password</label>
+              <label className="block text-sm font-medium">
+                Confirm Password
+              </label>
               <input
                 type="password"
                 placeholder="••••••••"
-                className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className="w-full mt-1 px-4 py-2 border rounded-lg"
+                required
               />
             </div>
           )}
