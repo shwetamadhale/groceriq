@@ -73,7 +73,46 @@ const Onboarding = () => {
           </div>
         )}
 
-        {step === 3 && <p>👩‍🍳 Cooking Skills & Tools (Step 3)</p>}
+{step === 3 && (
+  <div>
+    <h2 className="text-xl font-semibold mb-6">Cooking Skills & Tools</h2>
+
+    {/* Cooking Skill Radio Buttons */}
+    <div className="mb-6">
+      <label className="block mb-2 font-medium">Your Cooking Skill</label>
+      <div className="flex gap-4">
+        {["Beginner", "Intermediate", "Advanced"].map((level) => (
+          <label key={level} className="flex items-center gap-2">
+            <input type="radio" name="skill" value={level} className="accent-orange-500" />
+            {level}
+          </label>
+        ))}
+      </div>
+    </div>
+
+    {/* Equipment Checkboxes */}
+        <div className="mb-6">
+          <label className="block mb-2 font-medium">Available Equipment</label>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              "Stove",
+              "Oven",
+              "Microwave",
+              "Blender",
+              "Air Fryer",
+              "Pressure Cooker",
+              "Toaster",
+              "Rice Cooker",
+            ].map((tool) => (
+              <label key={tool} className="flex items-center gap-2">
+                <input type="checkbox" value={tool} className="accent-orange-500" />
+                {tool}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
         {step === 4 && <p>💰 Budget & Duration (Step 4)</p>}
         {step === 5 && <p>🤖 AI Suggestions or Skip (Step 5)</p>}
 
