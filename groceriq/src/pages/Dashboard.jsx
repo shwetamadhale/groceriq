@@ -1,27 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 
 const Dashboard = () => {
-  const [items, setItems] = useState([
-    {
-      name: "Milk",
-      quantity: "1 L",
-      category: "Dairy",
-      price: 3.5,
-      expiry: "2025-07-18",
-      added: "2025-07-12",
-      usage: "⭐⭐⭐",
-    },
-    {
-      name: "Spinach",
-      quantity: "200 g",
-      category: "Produce",
-      price: 2,
-      expiry: "2025-07-14",
-      added: "2025-07-10",
-      usage: "⭐⭐⭐⭐",
-    },
-  ]);
-
+  const [items, setItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -31,25 +13,51 @@ const Dashboard = () => {
     expiry: "",
   });
 
+  const pantryRef = collection(db, "items");
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const snapshot = await getDocs(pantryRef);
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setItems(data);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const addItem = () => {
+  const addItem = async () => {
     const newItem = {
       ...form,
+      price: parseFloat(form.price), // ensure price is a number
       added: new Date().toISOString().split("T")[0],
       usage: "⭐⭐",
     };
-    setItems([...items, newItem]);
-    setShowModal(false);
-    setForm({
-      name: "",
-      quantity: "",
-      category: "",
-      price: "",
-      expiry: "",
-    });
+
+    try {
+      await addDoc(pantryRef, newItem);
+      setItems((prev) => [...prev, newItem]);
+      setShowModal(false);
+      setForm({
+        name: "",
+        quantity: "",
+        category: "",
+        price: "",
+        expiry: "",
+      });
+    } catch (error) {
+      console.error("Error adding item:", error);
+    }
   };
 
   return (
@@ -78,7 +86,7 @@ const Dashboard = () => {
           </thead>
           <tbody>
             {items.map((item, i) => (
-              <tr key={i} className="border-t">
+              <tr key={item.id || i} className="border-t">
                 <td className="px-4 py-2">{item.name}</td>
                 <td className="px-4 py-2">{item.quantity}</td>
                 <td className="px-4 py-2">{item.category}</td>
