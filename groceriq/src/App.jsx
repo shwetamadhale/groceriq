@@ -4,6 +4,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 import Suggest from "./pages/Suggest";
+import Insights from "./pages/Insights";
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/suggest" element={<Suggest />} />
+      <Route path="/insights" element={<Insights />} />
 
     </Routes>
   );
