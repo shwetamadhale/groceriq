@@ -52,10 +52,43 @@ const Suggest = () => {
     },
   ];
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setResponse(`🤖 (Mock AI): "${query}" based on ${items.length} pantry items`);
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setResponse("Thinking... 🤔");
+
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://your-portfolio-site.com", // replace if deploying
+      },
+      body: JSON.stringify({
+        model: "mistralai/mistral-7b-instruct", // or try: openchat, mixtral, llama3
+        messages: [
+          {
+            role: "system",
+            content: "You are a smart grocery assistant helping reduce food waste and suggest meals.",
+          },
+          {
+            role: "user",
+            content: query,
+          },
+        ],
+      }),
+    });
+
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || "No response.";
+
+    setResponse(reply);
+  } catch (err) {
+    setResponse("⚠️ Error fetching AI response.");
+    console.error(err);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-orange-50 p-6">
