@@ -1,36 +1,61 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 const Suggest = () => {
+  const [items, setItems] = useState([]);
   const [query, setQuery] = useState("");
   const [response, setResponse] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setResponse(`🤖 Mock AI Response: "${query}" (real AI coming soon)`);
-  };
+  const pantryRef = collection(db, "items");
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      const snapshot = await getDocs(pantryRef);
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setItems(data);
+    };
+    fetchItems();
+  }, []);
+
+  // 🔍 Categorize based on pantry data
+  const now = new Date();
+  const expiringSoon = items.filter((item) => {
+    const expiry = new Date(item.expiry);
+    const daysLeft = (expiry - now) / (1000 * 60 * 60 * 24);
+    return daysLeft <= 3;
+  });
+
+  const lowUsage = items.filter((item) => (item.usage || "⭐⭐").length <= 2);
+  const restockSoon = items.filter((item) => {
+    return item.quantity.toLowerCase().includes("low") || item.quantity === "0";
+  });
 
   const cards = [
     {
-      title: "🛒 Items to Rebuy Soon",
-      desc: "Based on your usage, these might run out soon: eggs, milk, spinach.",
+      title: "⏰ Expiring Soon",
+      desc: expiringSoon.length
+        ? expiringSoon.map((i) => `• ${i.name} (${i.expiry})`).join("\n")
+        : "No items expiring in the next 3 days.",
     },
     {
-      title: "⏰ Expiring Items",
-      desc: "Use these soon: yogurt (2 days), cilantro (3 days), tomatoes (4 days).",
+      title: "🛒 Restock Likely",
+      desc: restockSoon.length
+        ? restockSoon.map((i) => `• ${i.name} – ${i.quantity}`).join("\n")
+        : "Nothing looks low right now.",
     },
     {
-      title: "🚫 Don’t Rebuy Yet",
-      desc: "These items haven't been used much: lentils, oat milk.",
-    },
-    {
-      title: "🧪 Try Something New",
-      desc: "You’ve never tried stir-fry with tofu. Want a recipe?",
-    },
-    {
-      title: "💸 Budget Smart Picks",
-      desc: "Based on your $100 budget: rice, chickpeas, frozen veggies, chicken thighs.",
+      title: "🚫 Don’t Rebuy",
+      desc: lowUsage.length
+        ? lowUsage.map((i) => `• ${i.name} – low usage`).join("\n")
+        : "All items seem to be in use.",
     },
   ];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setResponse(`🤖 (Mock AI): "${query}" based on ${items.length} pantry items`);
+  };
 
   return (
     <div className="min-h-screen bg-orange-50 p-6">
@@ -47,18 +72,23 @@ const Suggest = () => {
         />
       </form>
 
-      {/* Fake response */}
+      {/* AI Response */}
       {response && (
-        <div className="mb-6 p-4 bg-white border-l-4 border-orange-500 rounded-lg shadow text-gray-700">
+        <div className="mb-6 p-4 bg-white border-l-4 border-orange-500 rounded-lg shadow text-gray-700 whitespace-pre-line">
           {response}
         </div>
       )}
 
-      {/* Suggestion Cards Grid */}
+      {/* Smart Cards */}
       <div className="grid gap-6 md:grid-cols-2">
         {cards.map((card, i) => (
-          <div key={i} className="bg-white p-6 rounded-xl shadow-md border border-orange-100">
-            <h2 className="text-lg font-semibold mb-2 text-orange-600">{card.title}</h2>
+          <div
+            key={i}
+            className="bg-white p-6 rounded-xl shadow-md border border-orange-100 whitespace-pre-line"
+          >
+            <h2 className="text-lg font-semibold mb-2 text-orange-600">
+              {card.title}
+            </h2>
             <p className="text-gray-700">{card.desc}</p>
           </div>
         ))}
