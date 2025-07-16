@@ -57,19 +57,18 @@ const handleSubmit = async (e) => {
   setResponse("Thinking... 🤔");
 
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://your-portfolio-site.com", // replace if deploying
       },
       body: JSON.stringify({
-        model: "mistralai/mistral-7b-instruct", // or try: openchat, mixtral, llama3
+        model: "mixtral-8x7b-32768",
         messages: [
           {
             role: "system",
-            content: "You are a smart grocery assistant helping reduce food waste and suggest meals.",
+            content: "You are GrocerIQ, a helpful food assistant that suggests meals and grocery tips using the user's pantry ingredients.",
           },
           {
             role: "user",
@@ -80,14 +79,16 @@ const handleSubmit = async (e) => {
     });
 
     const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || "No response.";
+    console.log("🧠 Groq response:", data);
 
-    setResponse(reply);
+    const reply = data?.choices?.[0]?.message?.content;
+    setResponse(reply || "⚠️ AI gave no response. Try again.");
   } catch (err) {
+    console.error("❌ Groq API error:", err);
     setResponse("⚠️ Error fetching AI response.");
-    console.error(err);
   }
 };
+
 
 
   return (

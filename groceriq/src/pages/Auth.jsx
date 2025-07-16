@@ -4,6 +4,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
+import loginImage from "../assets/spices.jpg";
 
 const Auth = () => {
   const [mode, setMode] = useState("login");
@@ -28,94 +29,100 @@ const Auth = () => {
       }
 
       alert("Success! 🎉");
-      // TODO: Redirect to dashboard
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-orange-50 px-4">
-      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
-        <h2 className="text-2xl font-bold text-center mb-6 text-orange-700">
-          {mode === "login" ? "Login to GrocerIQ" : "Create Your Account"}
-        </h2>
+    <div className="h-screen w-screen flex font-serif bg-[#3e2a20] overflow-hidden">
+      {/* Left Side Image */}
+      <div className="w-1/2 h-full">
+        <img
+          src={loginImage}
+          alt="Spices"
+          className="w-full h-full object-cover rounded-r-[60px]"
+        />
+      </div>
 
-        {error && (
-          <p className="text-sm text-red-500 mb-4 text-center">{error}</p>
-        )}
+      {/* Right Side Form */}
+      <div className="w-1/2 h-full flex items-center justify-center px-12">
+        <div className="bg-[#f5e9dc] rounded-[20px] px-10 py-12 w-[400px] shadow-lg">
+          <h2 className="text-3xl font-bold text-center mb-8 text-[#3e2a20]">
+            {mode === "login" ? "Login to GrocerIQ" : "Create Your Account"}
+          </h2>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-sm font-medium">Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 px-4 py-2 border rounded-lg"
-              required
-            />
-          </div>
+          {error && (
+            <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full mt-1 px-4 py-2 border rounded-lg"
-              required
-            />
-          </div>
-
-          {mode === "signup" && (
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium">
-                Confirm Password
-              </label>
+              <label className="block mb-2 text-md text-[#3e2a20]">Email</label>
               <input
-                type="password"
-                placeholder="••••••••"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className="w-full mt-1 px-4 py-2 border rounded-lg"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
+                className="w-full px-5 py-3 bg-[#3e2a20] text-white rounded-full placeholder-gray-300 focus:outline-none"
               />
             </div>
-          )}
 
-          <button
-            type="submit"
-            className="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition"
-          >
-            {mode === "login" ? "Login" : "Sign Up"}
-          </button>
-        </form>
+            <div>
+              <label className="block mb-2 text-md text-[#3e2a20]">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-5 py-3 bg-[#3e2a20] text-white rounded-full placeholder-gray-300 focus:outline-none"
+              />
+            </div>
 
-        <div className="text-center mt-4 text-sm">
-          {mode === "login" ? (
-            <>
-              Don’t have an account?{" "}
-              <span
-                className="text-orange-600 font-semibold cursor-pointer hover:underline"
-                onClick={() => setMode("signup")}
-              >
-                Sign up
-              </span>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <span
-                className="text-orange-600 font-semibold cursor-pointer hover:underline"
-                onClick={() => setMode("login")}
-              >
-                Login
-              </span>
-            </>
-          )}
+            {mode === "signup" && (
+              <div>
+                <label className="block mb-2 text-md text-[#3e2a20]">Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  required
+                  className="w-full px-5 py-3 bg-[#3e2a20] text-white rounded-full placeholder-gray-300 focus:outline-none"
+                />
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-[#5c6e1d] text-white py-3 rounded-md font-semibold hover:bg-[#435517] transition"
+            >
+              {mode === "login" ? "LOGIN" : "SIGN UP"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-[#2a4a3a] mt-6">
+            {mode === "login" ? (
+              <>
+                Don’t have an account?{" "}
+                <span
+                  className="underline font-semibold cursor-pointer"
+                  onClick={() => setMode("signup")}
+                >
+                  Sign Up
+                </span>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <span
+                  className="underline font-semibold cursor-pointer"
+                  onClick={() => setMode("login")}
+                >
+                  Login
+                </span>
+              </>
+            )}
+          </p>
         </div>
       </div>
     </div>
