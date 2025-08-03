@@ -20,7 +20,7 @@ const Onboarding = () => {
         {/* STEP CONTENT */}
         {step === 1 && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">Food Preferences</h2>
+            <h2 className="text-xl font-semibold mb-4">Lets get to know you better</h2>
             <p className="mb-2">Select cuisines you like:</p>
             <div className="flex flex-wrap gap-2">
               {["Indian", "Italian", "Thai", "Mexican", "Japanese", "Korean"].map((cuisine) => (
