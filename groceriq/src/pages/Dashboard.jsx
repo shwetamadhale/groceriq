@@ -359,7 +359,7 @@ const Dashboard = () => {
                 placeholder="Quantity (e.g., 500g, 1 lb, 2 pieces)"
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#16a34a'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                onBlur={(e) => e.target.style.borderColor = '#d1dbd7b7'}
               />
               <input
                 name="category"
@@ -368,7 +368,7 @@ const Dashboard = () => {
                 placeholder="Category (e.g., Produce, Dairy, Grains)"
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#16a34a'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                onBlur={(e) => e.target.style.borderColor = '#d1dbd7b7'}
               />
               <input
                 name="price"
