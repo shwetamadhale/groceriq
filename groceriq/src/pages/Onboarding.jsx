@@ -115,10 +115,10 @@ const Onboarding = () => {
                     <button
                       key={cuisine}
                       onClick={() => toggleSelection(cuisine, selectedCuisines, setSelectedCuisines)}
-                      className={`px-4 py-2 rounded-full font-medium transition-colors ${
+                      className={`px-4 py-2 rounded-full font-medium transition-all duration-200 transform ${
                         selectedCuisines.includes(cuisine)
-                          ? 'bg-amber-100 text-amber-900 shadow-sm'
-                          : 'bg-amber-600 text-amber-100 hover:bg-amber-500'
+                          ? 'bg-yellow-300 text-amber-900 shadow-lg scale-105 ring-2 ring-yellow-400'
+                          : 'bg-amber-600 text-amber-100 hover:bg-amber-500 hover:scale-105'
                       }`}
                     >
                       {cuisine}
@@ -140,10 +140,10 @@ const Onboarding = () => {
                     <button
                       key={allergy}
                       onClick={() => toggleSelection(allergy, selectedAllergies, setSelectedAllergies)}
-                      className={`px-4 py-2 rounded-full font-medium transition-colors ${
+                      className={`px-4 py-2 rounded-full font-medium transition-all duration-200 transform ${
                         selectedAllergies.includes(allergy)
-                          ? 'bg-red-100 text-red-900 shadow-sm'
-                          : 'bg-amber-600 text-amber-100 hover:bg-amber-500'
+                          ? 'bg-red-300 text-red-900 shadow-lg scale-105 ring-2 ring-red-400'
+                          : 'bg-amber-600 text-amber-100 hover:bg-amber-500 hover:scale-105'
                       }`}
                     >
                       {allergy}
@@ -167,10 +167,10 @@ const Onboarding = () => {
                     <button
                       key={diet}
                       onClick={() => setSelectedDiet(selectedDiet === diet ? "" : diet)}
-                      className={`px-4 py-2 rounded-full font-medium transition-colors ${
+                      className={`px-4 py-2 rounded-full font-medium transition-all duration-200 transform ${
                         selectedDiet === diet
-                          ? 'bg-green-100 text-green-900 shadow-sm'
-                          : 'bg-amber-600 text-amber-100 hover:bg-amber-500'
+                          ? 'bg-green-300 text-green-900 shadow-lg scale-105 ring-2 ring-green-400'
+                          : 'bg-amber-600 text-amber-100 hover:bg-amber-500 hover:scale-105'
                       }`}
                     >
                       {diet}
@@ -206,14 +206,40 @@ const Onboarding = () => {
                       {flavorLevels[key]}/10
                     </span>
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    value={flavorLevels[key]}
-                    onChange={(e) => handleFlavorChange(key, e.target.value)}
-                    className="w-full h-3 bg-amber-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-600 [&::-webkit-slider-thumb]:shadow-lg"
-                  />
+                  <div className="relative">
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      value={flavorLevels[key]}
+                      onChange={(e) => handleFlavorChange(key, e.target.value)}
+                      className="w-full h-4 bg-amber-200 rounded-lg appearance-none cursor-pointer slider"
+                      style={{
+                        background: `linear-gradient(to right, #d97706 0%, #d97706 ${flavorLevels[key] * 10}%, #fde68a ${flavorLevels[key] * 10}%, #fde68a 100%)`
+                      }}
+                    />
+                    <style jsx>{`
+                      .slider::-webkit-slider-thumb {
+                        appearance: none;
+                        height: 24px;
+                        width: 24px;
+                        border-radius: 50%;
+                        background: #d97706;
+                        border: 3px solid white;
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                        cursor: pointer;
+                      }
+                      .slider::-moz-range-thumb {
+                        height: 24px;
+                        width: 24px;
+                        border-radius: 50%;
+                        background: #d97706;
+                        border: 3px solid white;
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                        cursor: pointer;
+                      }
+                    `}</style>
+                  </div>
                   <div className="flex justify-between text-sm text-amber-600 mt-2">
                     <span>None</span>
                     <span>Moderate</span>
@@ -239,7 +265,7 @@ const Onboarding = () => {
                     { level: "Intermediate", desc: "I can handle most recipes with some guidance" },
                     { level: "Advanced", desc: "Bring on the complex techniques and flavors!" }
                   ].map(({ level, desc }) => (
-                    <label key={level} className="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-amber-50 transition-colors">
+                    <label key={level} className="flex items-start gap-3 cursor-pointer p-4 rounded-lg hover:bg-amber-50 transition-all duration-200 border-2 border-transparent hover:border-amber-200">
                       <input 
                         type="radio" 
                         name="skill" 
@@ -248,10 +274,17 @@ const Onboarding = () => {
                         onChange={(e) => setCookingSkill(e.target.value)}
                         className="w-5 h-5 text-amber-600 focus:ring-amber-500 mt-1"
                       />
-                      <div>
-                        <span className="text-amber-800 text-lg font-medium">{level}</span>
-                        <p className="text-amber-600 text-sm">{desc}</p>
+                      <div className={`flex-1 ${cookingSkill === level ? 'text-amber-900' : 'text-amber-700'}`}>
+                        <span className={`text-lg font-medium ${cookingSkill === level ? 'font-bold' : ''}`}>
+                          {level}
+                        </span>
+                        <p className={`text-sm ${cookingSkill === level ? 'text-amber-700' : 'text-amber-600'}`}>
+                          {desc}
+                        </p>
                       </div>
+                      {cookingSkill === level && (
+                        <div className="text-amber-600 text-xl">✓</div>
+                      )}
                     </label>
                   ))}
                 </div>
@@ -262,7 +295,11 @@ const Onboarding = () => {
                 <p className="text-amber-600 mb-4">Select all that apply - this helps us suggest recipes you can actually make!</p>
                 <div className="grid grid-cols-2 gap-4">
                   {equipmentOptions.map((tool) => (
-                    <label key={tool} className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-amber-50 transition-colors">
+                    <label key={tool} className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg transition-all duration-200 border-2 ${
+                      equipment.includes(tool) 
+                        ? 'bg-amber-100 border-amber-400 shadow-sm' 
+                        : 'border-transparent hover:bg-amber-50 hover:border-amber-200'
+                    }`}>
                       <input 
                         type="checkbox" 
                         value={tool}
@@ -270,7 +307,12 @@ const Onboarding = () => {
                         onChange={() => toggleSelection(tool, equipment, setEquipment)}
                         className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
                       />
-                      <span className="text-amber-700 font-medium">{tool}</span>
+                      <span className={`font-medium ${equipment.includes(tool) ? 'text-amber-900' : 'text-amber-700'}`}>
+                        {tool}
+                      </span>
+                      {equipment.includes(tool) && (
+                        <div className="ml-auto text-amber-600 text-lg">✓</div>
+                      )}
                     </label>
                   ))}
                 </div>
