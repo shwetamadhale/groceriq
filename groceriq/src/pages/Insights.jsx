@@ -1,31 +1,34 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 
 const Insights = () => {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    const fetchItems = async () => {
-      const snapshot = await getDocs(collection(db, "items"));
+    const unsubscribe = onSnapshot(collection(db, "items"), (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setItems(data);
-    };
-    fetchItems();
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // 💡 Sample calculations:
-  const totalSpend = items.reduce((sum, i) => sum + Number(i.price || 0), 0);
-  const averagePrice =
-    items.length > 0 ? (totalSpend / items.length).toFixed(2) : 0;
+  // Real calculations with actual data
+  const totalSpend = items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+  const averagePrice = items.length > 0 ? (totalSpend / items.length).toFixed(2) : 0;
 
   const mostUsed = items
+    .slice() // Clone to avoid mutating original array during sort
     .sort((a, b) => (b.usage || "").length - (a.usage || "").length)
     .slice(0, 3);
 
   const expiring = items.filter((i) => {
+    if (!i.expiry) return false;
     const expiry = new Date(i.expiry);
-    return (expiry - new Date()) / (1000 * 60 * 60 * 24) <= 2;
+    const today = new Date();
+    const daysLeft = (expiry - today) / (1000 * 60 * 60 * 24);
+    return daysLeft <= 2 && daysLeft >= 0;
   });
 
   return (
