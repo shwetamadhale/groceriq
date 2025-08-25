@@ -3,13 +3,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  // ✅ Paste your actual config from Firebase Console here
-    apiKey: "AIzaSyDsQL5l-pNx_hz4H-J7RY81tGl5qKpiLqY",
-    authDomain: "groceriq.firebaseapp.com",
-    projectId: "groceriq",
-    storageBucket: "groceriq.firebasestorage.app",
-    messagingSenderId: "495413107202",
-    appId: "1:495413107202:web:f7964c6e83cb5e0fb9651b"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
