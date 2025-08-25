@@ -8,10 +8,12 @@ import {
   updateDoc 
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [items, setItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [currentView, setCurrentView] = useState("suggestions");
   const [form, setForm] = useState({
     name: "",
     quantity: "",
@@ -19,16 +21,27 @@ const Dashboard = () => {
     price: "",
     expiry: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   // Fetch real data from Firebase
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "items"), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      }));
-      setItems(data);
-    });
+    const unsubscribe = onSnapshot(
+      collection(db, "items"), 
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        }));
+        setItems(data);
+      },
+      (error) => {
+        console.error("Error fetching items:", error);
+        setError("Failed to load items from database");
+      }
+    );
 
     return () => unsubscribe();
   }, []);
@@ -38,12 +51,21 @@ const Dashboard = () => {
   };
 
   const addItem = async () => {
+    // Validation
+    if (!form.name.trim() || !form.quantity.trim() || !form.category.trim() || !form.price || !form.expiry) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
     try {
       const newItem = {
         ...form,
         price: parseFloat(form.price),
         added: new Date().toISOString().split("T")[0],
-        usage: "⭐⭐",
+        usage: "⭐⭐", // Default usage rating
       };
 
       await addDoc(collection(db, "items"), newItem);
@@ -57,14 +79,40 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error("Error adding item:", error);
+      setError("Failed to add item. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteItem = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this item?")) {
+      return;
+    }
+
     try {
       await deleteDoc(doc(db, "items", id));
     } catch (error) {
       console.error("Error deleting item:", error);
+      setError("Failed to delete item. Please try again.");
+    }
+  };
+
+  const updateUsage = async (id, currentUsage) => {
+    try {
+      const usageMap = {
+        "⭐": "⭐⭐",
+        "⭐⭐": "⭐⭐⭐",
+        "⭐⭐⭐": "⭐⭐⭐⭐",
+        "⭐⭐⭐⭐": "⭐⭐⭐⭐⭐",
+        "⭐⭐⭐⭐⭐": "⭐"
+      };
+      
+      const newUsage = usageMap[currentUsage] || "⭐⭐";
+      await updateDoc(doc(db, "items", id), { usage: newUsage });
+    } catch (error) {
+      console.error("Error updating usage:", error);
+      setError("Failed to update usage. Please try again.");
     }
   };
   
@@ -108,20 +156,24 @@ const Dashboard = () => {
     textDecoration: 'none',
     padding: '0.5rem 1rem',
     borderRadius: '0.5rem',
-    transition: 'background-color 0.2s',
-    cursor: 'pointer'
+    transition: 'all 0.2s',
+    cursor: 'pointer',
+    border: '2px solid transparent'
   };
 
   const navLinkActiveStyle = {
     ...navLinkStyle,
-    backgroundColor: '#a3a3a3',
-    color: 'white'
+    backgroundColor: '#365314',
+    color: 'white',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
   };
 
   const tableHeaderStyle = {
     display: 'flex',
     gap: '1rem',
-    marginBottom: '1rem'
+    marginBottom: '1rem',
+    flexWrap: 'wrap'
   };
 
   const headerButtonStyle = (isActive = false) => ({
@@ -133,7 +185,9 @@ const Dashboard = () => {
     cursor: 'pointer',
     backgroundColor: isActive ? '#166534' : '#22543d',
     color: 'white',
-    transition: 'background-color 0.2s'
+    transition: 'all 0.2s',
+    transform: isActive ? 'translateY(-2px)' : 'none',
+    boxShadow: isActive ? '0 4px 8px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.1)'
   });
 
   const tableStyle = {
@@ -163,7 +217,8 @@ const Dashboard = () => {
   const tdStyle = {
     padding: '1rem',
     borderBottom: '1px solid #f0f0f0',
-    color: '#374151'
+    color: '#374151',
+    position: 'relative'
   };
 
   const rowStyle = {
@@ -207,7 +262,9 @@ const Dashboard = () => {
     borderRadius: '1rem',
     width: '100%',
     maxWidth: '28rem',
-    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    maxHeight: '90vh',
+    overflowY: 'auto'
   };
 
   const modalTitleStyle = {
@@ -234,7 +291,7 @@ const Dashboard = () => {
     fontWeight: '600',
     border: 'none',
     cursor: 'pointer',
-    transition: 'background-color 0.2s'
+    transition: 'all 0.2s'
   };
 
   const cancelButtonStyle = {
@@ -246,8 +303,30 @@ const Dashboard = () => {
 
   const submitButtonStyle = {
     ...buttonStyle,
-    backgroundColor: '#16a34a',
-    color: 'white'
+    backgroundColor: loading ? '#9ca3af' : '#16a34a',
+    color: 'white',
+    cursor: loading ? 'not-allowed' : 'pointer'
+  };
+
+  const deleteButtonStyle = {
+    backgroundColor: '#dc2626',
+    color: 'white',
+    border: 'none',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '0.375rem',
+    fontSize: '0.75rem',
+    cursor: 'pointer',
+    transition: 'all 0.2s'
+  };
+
+  const usageButtonStyle = {
+    backgroundColor: 'transparent',
+    border: 'none',
+    fontSize: '1.125rem',
+    cursor: 'pointer',
+    padding: '0.25rem',
+    borderRadius: '0.25rem',
+    transition: 'all 0.2s'
   };
 
   return (
@@ -259,14 +338,34 @@ const Dashboard = () => {
         
         {/* Navigation */}
         <div style={navStyle}>
-          <div style={navLinkActiveStyle}>Suggestions</div>
-          <div style={navLinkStyle}>Insights</div>
-          <div style={navLinkStyle}>Profile</div>
+          <div 
+            style={currentView === 'suggestions' ? navLinkActiveStyle : navLinkStyle}
+            onClick={() => setCurrentView('suggestions')}
+          >
+            Suggestions
+          </div>
+          <div 
+            style={currentView === 'insights' ? navLinkActiveStyle : navLinkStyle}
+            onClick={() => navigate('/insights')}
+          >
+            Insights
+          </div>
+          <div 
+            style={currentView === 'profile' ? navLinkActiveStyle : navLinkStyle}
+            onClick={() => setCurrentView('profile')}
+          >
+            Profile
+          </div>
         </div>
 
         {/* Table Headers */}
         <div style={tableHeaderStyle}>
-          <button style={headerButtonStyle(true)}>+ Add Item</button>
+          <button 
+            style={headerButtonStyle(true)}
+            onClick={() => setShowModal(true)}
+          >
+            + Add Item
+          </button>
           <button style={headerButtonStyle()}>Quantity</button>
           <button style={headerButtonStyle()}>Category</button>
           <button style={headerButtonStyle()}>Price</button>
@@ -275,6 +374,33 @@ const Dashboard = () => {
           <button style={headerButtonStyle()}>Usage</button>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div style={{
+          backgroundColor: '#fee2e2',
+          border: '1px solid #fca5a5',
+          color: '#dc2626',
+          padding: '1rem',
+          borderRadius: '0.5rem',
+          marginBottom: '1rem'
+        }}>
+          {error}
+          <button 
+            onClick={() => setError("")}
+            style={{
+              float: 'right',
+              background: 'none',
+              border: 'none',
+              color: '#dc2626',
+              cursor: 'pointer',
+              fontSize: '1.2rem'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Table */}
       <div style={tableStyle}>
@@ -288,11 +414,17 @@ const Dashboard = () => {
               <th style={thStyle}>Expiry</th>
               <th style={thStyle}>Date Added</th>
               <th style={thStyle}>Usage</th>
+              <th style={thStyle}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item, i) => (
-              <tr key={item.id || i} style={rowStyle}>
+              <tr 
+                key={item.id || i} 
+                style={rowStyle}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+              >
                 <td style={tdStyle}>
                   <div style={{ fontWeight: '600', color: '#166534' }}>
                     {item.name}
@@ -313,21 +445,39 @@ const Dashboard = () => {
                 </td>
                 <td style={tdStyle}>
                   <span style={{ fontWeight: '600', color: '#059669' }}>
-                    ${item.price}
+                    ${Number(item.price).toFixed(2)}
                   </span>
                 </td>
                 <td style={tdStyle}>
                   <span style={{
-                    color: new Date(item.expiry) <= new Date(Date.now() + 7*24*60*60*1000) ? '#dc2626' : '#374151'
+                    color: new Date(item.expiry) <= new Date(Date.now() + 7*24*60*60*1000) ? '#dc2626' : '#374151',
+                    fontWeight: new Date(item.expiry) <= new Date(Date.now() + 7*24*60*60*1000) ? '600' : 'normal'
                   }}>
                     {item.expiry}
                   </span>
                 </td>
                 <td style={tdStyle}>{item.added}</td>
                 <td style={tdStyle}>
-                  <span style={{ fontSize: '1.125rem' }}>
-                    {item.usage}
-                  </span>
+                  <button
+                    style={usageButtonStyle}
+                    onClick={() => updateUsage(item.id, item.usage)}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="Click to update usage rating"
+                  >
+                    {item.usage || "⭐⭐"}
+                  </button>
+                </td>
+                <td style={tdStyle}>
+                  <button
+                    style={deleteButtonStyle}
+                    onClick={() => deleteItem(item.id)}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#b91c1c'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#dc2626'}
+                    title="Delete item"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
@@ -348,9 +498,20 @@ const Dashboard = () => {
           <h3 style={{ fontSize: '1.5rem', color: '#166534', marginBottom: '0.5rem' }}>
             Your pantry is empty
           </h3>
-          <p style={{ color: '#6b7280' }}>
+          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
             Start building your harvest by adding your first item!
           </p>
+          <button
+            onClick={() => setShowModal(true)}
+            style={{
+              ...buttonStyle,
+              backgroundColor: '#16a34a',
+              color: 'white',
+              fontSize: '1.1rem'
+            }}
+          >
+            Add Your First Item
+          </button>
         </div>
       )}
 
@@ -358,8 +519,14 @@ const Dashboard = () => {
       <button
         onClick={() => setShowModal(true)}
         style={addButtonStyle}
-        onMouseEnter={(e) => e.target.style.backgroundColor = '#15803d'}
-        onMouseLeave={(e) => e.target.style.backgroundColor = '#16a34a'}
+        onMouseEnter={(e) => {
+          e.target.style.backgroundColor = '#15803d';
+          e.target.style.transform = 'translateY(-2px)';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.backgroundColor = '#16a34a';
+          e.target.style.transform = 'translateY(0)';
+        }}
       >
         + Add Item
       </button>
@@ -370,6 +537,20 @@ const Dashboard = () => {
           <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
             <h2 style={modalTitleStyle}>Add New Item</h2>
 
+            {error && (
+              <div style={{
+                backgroundColor: '#fee2e2',
+                border: '1px solid #fca5a5',
+                color: '#dc2626',
+                padding: '0.75rem',
+                borderRadius: '0.5rem',
+                marginBottom: '1rem',
+                fontSize: '0.875rem'
+              }}>
+                {error}
+              </div>
+            )}
+
             <div>
               <input
                 name="name"
@@ -379,6 +560,7 @@ const Dashboard = () => {
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#16a34a'}
                 onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                disabled={loading}
               />
               <input
                 name="quantity"
@@ -387,7 +569,8 @@ const Dashboard = () => {
                 placeholder="Quantity (e.g., 500g, 1 lb, 2 pieces)"
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#16a34a'}
-                onBlur={(e) => e.target.style.borderColor = '#d1dbd7b7'}
+                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                disabled={loading}
               />
               <input
                 name="category"
@@ -396,18 +579,21 @@ const Dashboard = () => {
                 placeholder="Category (e.g., Produce, Dairy, Grains)"
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#16a34a'}
-                onBlur={(e) => e.target.style.borderColor = '#d1dbd7b7'}
+                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                disabled={loading}
               />
               <input
                 name="price"
                 type="number"
                 step="0.01"
+                min="0"
                 value={form.price}
                 onChange={handleChange}
                 placeholder="Price (USD)"
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#16a34a'}
                 onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                disabled={loading}
               />
               <input
                 name="expiry"
@@ -417,6 +603,7 @@ const Dashboard = () => {
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#16a34a'}
                 onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                disabled={loading}
               />
             </div>
 
@@ -426,16 +613,22 @@ const Dashboard = () => {
                 style={cancelButtonStyle}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#e5e7eb'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                disabled={loading}
               >
                 Cancel
               </button>
               <button
                 onClick={addItem}
                 style={submitButtonStyle}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#15803d'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#16a34a'}
+                onMouseEnter={(e) => {
+                  if (!loading) e.target.style.backgroundColor = '#15803d';
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) e.target.style.backgroundColor = '#16a34a';
+                }}
+                disabled={loading}
               >
-                Add Item
+                {loading ? "Adding..." : "Add Item"}
               </button>
             </div>
           </div>
