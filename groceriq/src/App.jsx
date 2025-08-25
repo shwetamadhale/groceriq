@@ -5,17 +5,37 @@ import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 import Suggest from "./pages/Suggest";
 import Insights from "./pages/Insights";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/suggest" element={<Suggest />} />
-      <Route path="/insights" element={<Insights />} />
-
+      
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/onboarding" element={
+        <ProtectedRoute>
+          <Onboarding />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/suggest" element={
+        <ProtectedRoute>
+          <Suggest />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/insights" element={
+        <ProtectedRoute>
+          <Insights />
+        </ProtectedRoute>
+      } />
     </Routes>
   );
 };

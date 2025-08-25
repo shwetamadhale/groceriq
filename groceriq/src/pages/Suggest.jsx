@@ -60,24 +60,19 @@ const Suggest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
-    
+
     setLoading(true);
     setResponse("");
 
     try {
-      // Create context from pantry items
-      const pantryContext = items.length > 0 
+      // Check if API key exists
+      if (!import.meta.env.VITE_GROQ_API_KEY) {
+        throw new Error("Groq API key is missing. Please check your environment variables.");
+      }
+
+      const pantryContext = items.length > 0
         ? `Current pantry items: ${items.map(item => `${item.name} (${item.quantity})`).join(', ')}`
         : "No pantry items currently tracked.";
-
-      const systemPrompt = `You are GrocerIQ, a helpful food assistant. Help users with cooking, meal planning, and grocery suggestions. 
-
-User's current pantry: ${pantryContext}
-
-Provide practical, helpful cooking and food advice. If asked about recipes, give simple step-by-step instructions. If asked about meal ideas, suggest dishes they can make with available ingredients.`;
-
-      console.log("🔑 API Key check:", import.meta.env.VITE_GROQ_API_KEY ? "Present" : "Missing");
-      console.log("📝 Sending query:", query);
 
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -90,7 +85,7 @@ Provide practical, helpful cooking and food advice. If asked about recipes, give
           messages: [
             {
               role: "system",
-              content: systemPrompt,
+              content: `You are GrocerIQ, a helpful food assistant. Help users with cooking, meal planning, and grocery suggestions. User's current pantry: ${pantryContext}`,
             },
             {
               role: "user",
@@ -102,29 +97,23 @@ Provide practical, helpful cooking and food advice. If asked about recipes, give
         }),
       });
 
-      console.log("📡 Response status:", res.status);
-
       if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ API Error Response:", errorText);
-        throw new Error(`API request failed with status ${res.status}: ${errorText}`);
+        const errorData = await res.json();
+        throw new Error(errorData.error?.message || `API error: ${res.status}`);
       }
 
       const data = await res.json();
-      console.log("🧠 Full Groq response:", data);
-
       const reply = data?.choices?.[0]?.message?.content;
-      
+
       if (!reply) {
-        console.error("❌ No content in response:", data);
-        setResponse("⚠️ AI response was empty. Please try rephrasing your question.");
-      } else {
-        setResponse(reply);
+        throw new Error("No response from AI");
       }
 
+      setResponse(reply);
+
     } catch (err) {
-      console.error("❌ Groq API error:", err);
-      setResponse(`⚠️ Error: ${err.message}`);
+      console.error("Groq API error:", err);
+      setResponse(`❌ Error: ${err.message}. Please check your API key and try again.`);
     } finally {
       setLoading(false);
     }
