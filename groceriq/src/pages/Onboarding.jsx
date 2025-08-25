@@ -330,20 +330,47 @@ const Onboarding = () => {
               <div className="bg-white p-6 rounded-xl shadow-sm border border-amber-200">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xl font-semibold text-amber-800">Your Grocery Budget</h3>
-                  <div className="text-right">
+                  <div className="text-right bg-amber-100 px-4 py-2 rounded-lg">
                     <span className="text-3xl font-bold text-amber-700">${budget}</span>
-                    <p className="text-amber-600 text-sm">per {budgetDuration}</p>
+                    <p className="text-amber-600 text-sm font-medium">per {budgetDuration}</p>
                   </div>
                 </div>
-                <input
-                  type="range"
-                  min="10"
-                  max="500"
-                  step="10"
-                  value={budget}
-                  onChange={(e) => setBudget(parseInt(e.target.value))}
-                  className="w-full h-3 bg-amber-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-600 [&::-webkit-slider-thumb]:shadow-lg"
-                />
+                <div className="relative">
+                  <input
+                    type="range"
+                    min="10"
+                    max="500"
+                    step="10"
+                    value={budget}
+                    onChange={(e) => setBudget(parseInt(e.target.value))}
+                    className="w-full h-4 bg-amber-200 rounded-lg appearance-none cursor-pointer budget-slider"
+                    style={{
+                      background: `linear-gradient(to right, #d97706 0%, #d97706 ${((budget - 10) / (500 - 10)) * 100}%, #fde68a ${((budget - 10) / (500 - 10)) * 100}%, #fde68a 100%)`
+                    }}
+                  />
+                  <style jsx>{`
+                    .budget-slider::-webkit-slider-thumb {
+                      appearance: none;
+                      height: 24px;
+                      width: 24px;
+                      border-radius: 50%;
+                      background: #d97706;
+                      border: 3px solid white;
+                      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                      cursor: pointer;
+                    }
+                    .budget-slider::-moz-range-thumb {
+                      height: 24px;
+                      width: 24px;
+                      border-radius: 50%;
+                      background: #d97706;
+                      border: 3px solid white;
+                      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                      cursor: pointer;
+                      border: none;
+                    }
+                  `}</style>
+                </div>
                 <div className="flex justify-between text-sm text-amber-600 mt-3">
                   <span>$10</span>
                   <span>$250</span>
@@ -356,7 +383,7 @@ const Onboarding = () => {
                 <select 
                   value={budgetDuration}
                   onChange={(e) => setBudgetDuration(e.target.value)}
-                  className="w-full p-4 border-2 border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-lg"
+                  className="w-full p-4 border-2 border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-lg bg-white shadow-sm transition-all duration-200 hover:border-amber-400"
                 >
                   <option value="weekly">Weekly Shopping</option>
                   <option value="biweekly">Every Two Weeks</option>
