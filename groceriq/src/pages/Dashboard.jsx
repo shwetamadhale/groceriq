@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
+import { 
+  collection, 
+  addDoc, 
+  onSnapshot, 
+  deleteDoc, 
+  doc, 
+  updateDoc 
+} from "firebase/firestore";
+import { db } from "../firebase";
 
 const Dashboard = () => {
-  const [items, setItems] = useState([
-    // Sample data to showcase the design
-    { id: 1, name: "Organic Spinach", quantity: "500g", category: "Produce", price: 3.99, expiry: "2025-08-18", added: "2025-08-10", usage: "⭐⭐⭐" },
-    { id: 2, name: "Greek Yogurt", quantity: "32oz", category: "Dairy", price: 5.49, expiry: "2025-08-25", added: "2025-08-08", usage: "⭐⭐⭐⭐" },
-    { id: 3, name: "Whole Wheat Bread", quantity: "1 loaf", category: "Grains", price: 2.99, expiry: "2025-08-15", added: "2025-08-12", usage: "⭐⭐" }
-  ]);
+  const [items, setItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -16,30 +20,54 @@ const Dashboard = () => {
     expiry: "",
   });
 
+  // Fetch real data from Firebase
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "items"), (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      setItems(data);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const addItem = async () => {
-    const newItem = {
-      id: Date.now(), // Simple ID for demo
-      ...form,
-      price: parseFloat(form.price),
-      added: new Date().toISOString().split("T")[0],
-      usage: "⭐⭐",
-    };
+    try {
+      const newItem = {
+        ...form,
+        price: parseFloat(form.price),
+        added: new Date().toISOString().split("T")[0],
+        usage: "⭐⭐",
+      };
 
-    setItems((prev) => [...prev, newItem]);
-    setShowModal(false);
-    setForm({
-      name: "",
-      quantity: "",
-      category: "",
-      price: "",
-      expiry: "",
-    });
+      await addDoc(collection(db, "items"), newItem);
+      setShowModal(false);
+      setForm({
+        name: "",
+        quantity: "",
+        category: "",
+        price: "",
+        expiry: "",
+      });
+    } catch (error) {
+      console.error("Error adding item:", error);
+    }
   };
 
+  const deleteItem = async (id) => {
+    try {
+      await deleteDoc(doc(db, "items", id));
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  };
+  
   // Inline styles
   const containerStyle = {
     minHeight: '100vh',
