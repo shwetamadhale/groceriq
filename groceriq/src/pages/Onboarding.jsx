@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import { updateProfile } from "firebase/auth";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -17,6 +19,7 @@ const Onboarding = () => {
   const [equipment, setEquipment] = useState([]);
   const [budget, setBudget] = useState(100);
   const [budgetDuration, setBudgetDuration] = useState("weekly");
+  const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
 
@@ -38,22 +41,41 @@ const Onboarding = () => {
     }));
   };
 
-  const handleFinish = () => {
-    // Save preferences
-    const preferences = {
-      cuisines: selectedCuisines,
-      allergies: selectedAllergies,
-      diet: selectedDiet,
-      flavorLevels,
-      cookingSkill,
-      equipment,
-      budget,
-      budgetDuration
-    };
-    
-    localStorage.setItem('userPreferences', JSON.stringify(preferences));
-    navigate('/dashboard');
+  const handleFinish = async () => {
+    setLoading(true);
+    try {
+      // Save preferences to user profile
+      const preferences = {
+        cuisines: selectedCuisines,
+        allergies: selectedAllergies,
+        diet: selectedDiet,
+        flavorLevels,
+        cookingSkill,
+        equipment,
+        budget,
+        budgetDuration,
+        onboardingCompleted: true
+      };
+      
+      // Store in Firebase user profile
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: JSON.stringify(preferences)
+        });
+      }
+      
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Error saving preferences:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const cuisineOptions = ["Indian", "Italian", "Thai", "Mexican", "Japanese", "Korean", "Mediterranean", "Chinese", "American", "French"];
+  const allergyOptions = ["Nuts", "Dairy", "Gluten", "Shellfish", "Eggs", "Soy", "Fish", "Sesame"];
+  const dietOptions = ["Vegan", "Vegetarian", "Keto", "Paleo", "Mediterranean", "Low-carb", "Gluten-free"];
+  const equipmentOptions = ["Stove", "Oven", "Microwave", "Blender", "Air Fryer", "Pressure Cooker", "Toaster", "Rice Cooker"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 p-6">
@@ -69,7 +91,7 @@ const Onboarding = () => {
               {[1, 2, 3, 4, 5].map(i => (
                 <div
                   key={i}
-                  className={`w-3 h-3 rounded-full ${
+                  className={`w-3 h-3 rounded-full transition-colors ${
                     i <= step ? 'bg-amber-600' : 'bg-amber-200'
                   }`}
                 />
@@ -85,16 +107,17 @@ const Onboarding = () => {
               <h2 className="text-2xl font-bold text-amber-800 mb-4">Favorite Cuisines?</h2>
               <div className="bg-amber-800 p-6 rounded-2xl mb-6">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-amber-100 font-medium">Select all that fit</span>
+                  <span className="text-amber-100 font-medium">Select all that apply</span>
+                  <span className="text-amber-200 text-sm">{selectedCuisines.length} selected</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {["Indian", "Italian", "Thai", "Mexican", "Japanese", "Korean", "Mediterranean", "Chinese"].map((cuisine) => (
+                  {cuisineOptions.map((cuisine) => (
                     <button
                       key={cuisine}
                       onClick={() => toggleSelection(cuisine, selectedCuisines, setSelectedCuisines)}
                       className={`px-4 py-2 rounded-full font-medium transition-colors ${
                         selectedCuisines.includes(cuisine)
-                          ? 'bg-amber-100 text-amber-900'
+                          ? 'bg-amber-100 text-amber-900 shadow-sm'
                           : 'bg-amber-600 text-amber-100 hover:bg-amber-500'
                       }`}
                     >
@@ -109,16 +132,17 @@ const Onboarding = () => {
               <h2 className="text-2xl font-bold text-amber-800 mb-4">Any Allergies?</h2>
               <div className="bg-amber-800 p-6 rounded-2xl mb-6">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-amber-100 font-medium">Select all that fit</span>
+                  <span className="text-amber-100 font-medium">Select all that apply</span>
+                  <span className="text-amber-200 text-sm">{selectedAllergies.length} selected</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {["Nuts", "Dairy", "Gluten", "Shellfish", "Eggs", "Soy", "Fish"].map((allergy) => (
+                  {allergyOptions.map((allergy) => (
                     <button
                       key={allergy}
                       onClick={() => toggleSelection(allergy, selectedAllergies, setSelectedAllergies)}
                       className={`px-4 py-2 rounded-full font-medium transition-colors ${
                         selectedAllergies.includes(allergy)
-                          ? 'bg-amber-100 text-amber-900'
+                          ? 'bg-red-100 text-red-900 shadow-sm'
                           : 'bg-amber-600 text-amber-100 hover:bg-amber-500'
                       }`}
                     >
@@ -130,19 +154,22 @@ const Onboarding = () => {
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold text-amber-800 mb-4">Any Diet?</h2>
+              <h2 className="text-2xl font-bold text-amber-800 mb-4">Dietary Preferences?</h2>
               <div className="bg-amber-800 p-6 rounded-2xl">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-amber-100 font-medium">Select all that fit</span>
+                  <span className="text-amber-100 font-medium">Select one that fits best</span>
+                  <span className="text-amber-200 text-sm">
+                    {selectedDiet ? selectedDiet : "None selected"}
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {["Vegan", "Vegetarian", "Keto", "Paleo", "Mediterranean", "Low-carb"].map((diet) => (
+                  {dietOptions.map((diet) => (
                     <button
                       key={diet}
                       onClick={() => setSelectedDiet(selectedDiet === diet ? "" : diet)}
                       className={`px-4 py-2 rounded-full font-medium transition-colors ${
                         selectedDiet === diet
-                          ? 'bg-amber-100 text-amber-900'
+                          ? 'bg-green-100 text-green-900 shadow-sm'
                           : 'bg-amber-600 text-amber-100 hover:bg-amber-500'
                       }`}
                     >
@@ -158,20 +185,26 @@ const Onboarding = () => {
         {/* Step 2: Flavor Profile */}
         {step === 2 && (
           <div>
-            <h2 className="text-2xl font-bold text-amber-800 mb-6">Flavor Profile</h2>
+            <h2 className="text-2xl font-bold text-amber-800 mb-6">What's Your Flavor Profile?</h2>
+            <p className="text-amber-700 mb-8 text-lg">Help us understand your taste preferences</p>
             <div className="space-y-6">
               {[
-                { key: "spice", label: "Spice", icon: "🌶️" },
-                { key: "salt", label: "Salt", icon: "🧂" },
-                { key: "tang", label: "Tang", icon: "🍋" },
-                { key: "sweet", label: "Sweet", icon: "🍯" },
-                { key: "umami", label: "Umami", icon: "🍄" }
-              ].map(({ key, label, icon }) => (
+                { key: "spice", label: "Spice", icon: "🌶️", desc: "How much heat do you like?" },
+                { key: "salt", label: "Salt", icon: "🧂", desc: "Preference for salty flavors" },
+                { key: "tang", label: "Tang", icon: "🍋", desc: "Do you enjoy sour/acidic tastes?" },
+                { key: "sweet", label: "Sweet", icon: "🍯", desc: "How much do you like sweet flavors?" },
+                { key: "umami", label: "Umami", icon: "🍄", desc: "Rich, savory, meaty flavors" }
+              ].map(({ key, label, icon, desc }) => (
                 <div key={key} className="bg-white p-6 rounded-xl shadow-sm border border-amber-200">
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-3 mb-2">
                     <span className="text-2xl">{icon}</span>
-                    <label className="text-xl font-semibold text-amber-800">{label} Level</label>
-                    <span className="ml-auto text-amber-700 font-bold text-lg">{flavorLevels[key]}/10</span>
+                    <div className="flex-1">
+                      <label className="text-xl font-semibold text-amber-800">{label}</label>
+                      <p className="text-amber-600 text-sm">{desc}</p>
+                    </div>
+                    <span className="text-amber-700 font-bold text-xl bg-amber-100 px-3 py-1 rounded-full">
+                      {flavorLevels[key]}/10
+                    </span>
                   </div>
                   <input
                     type="range"
@@ -179,12 +212,12 @@ const Onboarding = () => {
                     max="10"
                     value={flavorLevels[key]}
                     onChange={(e) => handleFlavorChange(key, e.target.value)}
-                    className="w-full h-3 bg-amber-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-600"
+                    className="w-full h-3 bg-amber-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-600 [&::-webkit-slider-thumb]:shadow-lg"
                   />
                   <div className="flex justify-between text-sm text-amber-600 mt-2">
-                    <span>Low</span>
-                    <span>Medium</span>
-                    <span>High</span>
+                    <span>None</span>
+                    <span>Moderate</span>
+                    <span>Love it!</span>
                   </div>
                 </div>
               ))}
@@ -195,44 +228,49 @@ const Onboarding = () => {
         {/* Step 3: Cooking Skills & Tools */}
         {step === 3 && (
           <div>
-            <h2 className="text-2xl font-bold text-amber-800 mb-6">Cooking Skills & Tools</h2>
+            <h2 className="text-2xl font-bold text-amber-800 mb-6">Cooking Skills & Kitchen Setup</h2>
             
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-xl shadow-sm border border-amber-200">
-                <h3 className="text-xl font-semibold text-amber-800 mb-4">Your Cooking Skill</h3>
+                <h3 className="text-xl font-semibold text-amber-800 mb-4">How would you rate your cooking skills?</h3>
                 <div className="space-y-3">
-                  {["Beginner", "Intermediate", "Advanced"].map((level) => (
-                    <label key={level} className="flex items-center gap-3 cursor-pointer">
+                  {[
+                    { level: "Beginner", desc: "I'm just starting out, simple recipes please!" },
+                    { level: "Intermediate", desc: "I can handle most recipes with some guidance" },
+                    { level: "Advanced", desc: "Bring on the complex techniques and flavors!" }
+                  ].map(({ level, desc }) => (
+                    <label key={level} className="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-amber-50 transition-colors">
                       <input 
                         type="radio" 
                         name="skill" 
                         value={level}
                         checked={cookingSkill === level}
                         onChange={(e) => setCookingSkill(e.target.value)}
-                        className="w-5 h-5 text-amber-600 focus:ring-amber-500"
+                        className="w-5 h-5 text-amber-600 focus:ring-amber-500 mt-1"
                       />
-                      <span className="text-amber-700 text-lg">{level}</span>
+                      <div>
+                        <span className="text-amber-800 text-lg font-medium">{level}</span>
+                        <p className="text-amber-600 text-sm">{desc}</p>
+                      </div>
                     </label>
                   ))}
                 </div>
               </div>
 
               <div className="bg-white p-6 rounded-xl shadow-sm border border-amber-200">
-                <h3 className="text-xl font-semibold text-amber-800 mb-4">Available Equipment</h3>
+                <h3 className="text-xl font-semibold text-amber-800 mb-4">What kitchen equipment do you have?</h3>
+                <p className="text-amber-600 mb-4">Select all that apply - this helps us suggest recipes you can actually make!</p>
                 <div className="grid grid-cols-2 gap-4">
-                  {[
-                    "Stove", "Oven", "Microwave", "Blender", 
-                    "Air Fryer", "Pressure Cooker", "Toaster", "Rice Cooker"
-                  ].map((tool) => (
-                    <label key={tool} className="flex items-center gap-3 cursor-pointer">
+                  {equipmentOptions.map((tool) => (
+                    <label key={tool} className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-amber-50 transition-colors">
                       <input 
                         type="checkbox" 
                         value={tool}
                         checked={equipment.includes(tool)}
                         onChange={() => toggleSelection(tool, equipment, setEquipment)}
-                        className="w-5 h-5 text-amber-600 focus:ring-amber-500"
+                        className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
                       />
-                      <span className="text-amber-700">{tool}</span>
+                      <span className="text-amber-700 font-medium">{tool}</span>
                     </label>
                   ))}
                 </div>
@@ -244,13 +282,16 @@ const Onboarding = () => {
         {/* Step 4: Budget Preferences */}
         {step === 4 && (
           <div>
-            <h2 className="text-2xl font-bold text-amber-800 mb-6">Budget Preferences</h2>
+            <h2 className="text-2xl font-bold text-amber-800 mb-6">Budget & Shopping Preferences</h2>
             
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-xl shadow-sm border border-amber-200">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold text-amber-800">Your Budget</h3>
-                  <span className="text-2xl font-bold text-amber-700">${budget}</span>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold text-amber-800">Your Grocery Budget</h3>
+                  <div className="text-right">
+                    <span className="text-3xl font-bold text-amber-700">${budget}</span>
+                    <p className="text-amber-600 text-sm">per {budgetDuration}</p>
+                  </div>
                 </div>
                 <input
                   type="range"
@@ -259,25 +300,25 @@ const Onboarding = () => {
                   step="10"
                   value={budget}
                   onChange={(e) => setBudget(parseInt(e.target.value))}
-                  className="w-full h-3 bg-amber-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-600"
+                  className="w-full h-3 bg-amber-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-600 [&::-webkit-slider-thumb]:shadow-lg"
                 />
-                <div className="flex justify-between text-sm text-amber-600 mt-2">
+                <div className="flex justify-between text-sm text-amber-600 mt-3">
                   <span>$10</span>
                   <span>$250</span>
-                  <span>$500</span>
+                  <span>$500+</span>
                 </div>
               </div>
 
               <div className="bg-white p-6 rounded-xl shadow-sm border border-amber-200">
-                <h3 className="text-xl font-semibold text-amber-800 mb-4">Budget Duration</h3>
+                <h3 className="text-xl font-semibold text-amber-800 mb-4">How often do you shop?</h3>
                 <select 
                   value={budgetDuration}
                   onChange={(e) => setBudgetDuration(e.target.value)}
-                  className="w-full p-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full p-4 border-2 border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-lg"
                 >
-                  <option value="weekly">Weekly</option>
-                  <option value="biweekly">Biweekly</option>
-                  <option value="monthly">Monthly</option>
+                  <option value="weekly">Weekly Shopping</option>
+                  <option value="biweekly">Every Two Weeks</option>
+                  <option value="monthly">Monthly Shopping</option>
                 </select>
               </div>
             </div>
@@ -286,12 +327,28 @@ const Onboarding = () => {
 
         {/* Step 5: Completion */}
         {step === 5 && (
-          <div>
-            <h2 className="text-2xl font-bold text-amber-800 mb-6">You're all set!</h2>
-            <p className="text-amber-700 text-lg mb-6">
-              Would you like GrocerIQ to give you smart suggestions on what to stock up
-              on based on your preferences?
-            </p>
+          <div className="text-center">
+            <div className="bg-white p-8 rounded-2xl shadow-lg border border-amber-200 mb-8">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className="text-3xl font-bold text-amber-800 mb-4">You're all set!</h2>
+              <p className="text-amber-700 text-lg mb-6">
+                We've learned about your tastes, skills, and preferences. 
+                Ready to start your smart grocery journey?
+              </p>
+
+              {/* Summary */}
+              <div className="text-left bg-amber-50 p-4 rounded-lg mb-6">
+                <h4 className="font-semibold text-amber-800 mb-2">Your Profile Summary:</h4>
+                <ul className="text-amber-700 text-sm space-y-1">
+                  <li>• Cuisines: {selectedCuisines.length > 0 ? selectedCuisines.join(", ") : "None selected"}</li>
+                  <li>• Cooking Level: {cookingSkill || "Not specified"}</li>
+                  <li>• Budget: ${budget} {budgetDuration}</li>
+                  <li>• Equipment: {equipment.length} items selected</li>
+                  {selectedAllergies.length > 0 && <li>• Allergies: {selectedAllergies.join(", ")}</li>}
+                  {selectedDiet && <li>• Diet: {selectedDiet}</li>}
+                </ul>
+              </div>
+            </div>
 
             <div className="space-y-4">
               <button
@@ -299,17 +356,19 @@ const Onboarding = () => {
                   handleFinish();
                   navigate('/suggest');
                 }}
-                className="w-full bg-amber-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-3"
+                disabled={loading}
+                className="w-full bg-amber-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-3 disabled:opacity-50"
               >
-                <span>✅</span>
-                Yes, show AI Suggestions
+                <span>✨</span>
+                {loading ? "Setting up..." : "Yes, show AI Suggestions"}
               </button>
               <button
                 onClick={handleFinish}
-                className="w-full bg-amber-100 text-amber-800 py-4 px-6 rounded-lg font-semibold text-lg hover:bg-amber-200 transition-colors flex items-center justify-center gap-3 border border-amber-300"
+                disabled={loading}
+                className="w-full bg-amber-100 text-amber-800 py-4 px-6 rounded-lg font-semibold text-lg hover:bg-amber-200 transition-colors flex items-center justify-center gap-3 border border-amber-300 disabled:opacity-50"
               >
-                <span>🚪</span>
-                Skip, take me to Dashboard
+                <span>🏠</span>
+                Skip to Dashboard
               </button>
             </div>
           </div>
@@ -319,27 +378,21 @@ const Onboarding = () => {
         <div className="mt-12 flex justify-between">
           <button
             onClick={prev}
-            disabled={step === 1}
-            className="px-8 py-3 bg-amber-200 text-amber-800 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-amber-300 transition-colors"
+            disabled={step === 1 || loading}
+            className="px-8 py-3 bg-amber-200 text-amber-800 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-amber-300 transition-colors flex items-center gap-2"
           >
-            Back
+            ← Back
           </button>
           
           {step < 5 ? (
             <button
               onClick={next}
-              className="px-8 py-3 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-colors"
+              disabled={loading}
+              className="px-8 py-3 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-colors flex items-center gap-2"
             >
-              Next
+              Next →
             </button>
-          ) : (
-            <button
-              onClick={handleFinish}
-              className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
-            >
-              Finish
-            </button>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
