@@ -20,6 +20,8 @@ const Onboarding = () => {
   const [budget, setBudget] = useState(100);
   const [budgetDuration, setBudgetDuration] = useState("weekly");
   const [loading, setLoading] = useState(false);
+  // Add name state
+  const [userName, setUserName] = useState("");
   
   const navigate = useNavigate();
 
@@ -41,11 +43,12 @@ const Onboarding = () => {
     }));
   };
 
+  // Update the handleFinish function to save the name
   const handleFinish = async () => {
     setLoading(true);
     try {
-      // Save preferences to user profile
       const preferences = {
+        userName,
         cuisines: selectedCuisines,
         allergies: selectedAllergies,
         diet: selectedDiet,
@@ -57,10 +60,10 @@ const Onboarding = () => {
         onboardingCompleted: true
       };
       
-      // Store in Firebase user profile
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, {
-          displayName: JSON.stringify(preferences)
+          displayName: userName,
+          preferences: JSON.stringify(preferences)
         });
       }
       
@@ -103,6 +106,20 @@ const Onboarding = () => {
         {/* Step 1: Cuisines, Allergies, Diet */}
         {step === 1 && (
           <div className="space-y-8">
+            {/* Add name field in Step 1 */}
+            <div>
+              <h2 className="text-2xl font-bold text-amber-800 mb-4">What should we call you?</h2>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-amber-200">
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter your name"
+                  className="w-full p-4 border-2 border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-lg"
+                />
+              </div>
+            </div>
+
             <div>
               <h2 className="text-2xl font-bold text-amber-800 mb-4">Favorite Cuisines?</h2>
               <div className="bg-amber-800 p-6 rounded-2xl mb-6">
@@ -275,7 +292,7 @@ const Onboarding = () => {
                         className="w-5 h-5 text-amber-600 focus:ring-amber-500 mt-1"
                       />
                       <div className={`flex-1 ${cookingSkill === level ? 'text-amber-900' : 'text-amber-700'}`}>
-                        <span className={`text-lg font-medium ${cookingSkill === level ? 'font-bold' : ''}`}>
+                        <span className={`text-lg font-medium ${cookingSkill === level ? 'font-bold' : 'font-normal'}`}>
                           {level}
                         </span>
                         <p className={`text-sm ${cookingSkill === level ? 'text-amber-700' : 'text-amber-600'}`}>
@@ -409,6 +426,7 @@ const Onboarding = () => {
               <div className="text-left bg-amber-50 p-4 rounded-lg mb-6">
                 <h4 className="font-semibold text-amber-800 mb-2">Your Profile Summary:</h4>
                 <ul className="text-amber-700 text-sm space-y-1">
+                  <li>• Name: {userName || "Not specified"}</li>
                   <li>• Cuisines: {selectedCuisines.length > 0 ? selectedCuisines.join(", ") : "None selected"}</li>
                   <li>• Cooking Level: {cookingSkill || "Not specified"}</li>
                   <li>• Budget: ${budget} {budgetDuration}</li>

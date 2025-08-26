@@ -31,6 +31,11 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userName, setUserName] = useState("User");
+  
+  // Add these states for filtering and sorting
+  const [filterCategory, setFilterCategory] = useState("");
+  const [sortField, setSortField] = useState("name");
+  const [sortDirection, setSortDirection] = useState("asc");
 
   const navigate = useNavigate();
 
@@ -60,6 +65,20 @@ const Dashboard = () => {
 
     return () => unsubscribe();
   }, []);
+
+  // Add filtered and sorted items
+  const filteredItems = items
+    .filter(item => !filterCategory || item.category === filterCategory)
+    .sort((a, b) => {
+      const aValue = a[sortField] || "";
+      const bValue = b[sortField] || "";
+      
+      if (sortDirection === "asc") {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -382,6 +401,47 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Filter and Sort Controls */}
+      <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <select 
+          value={filterCategory} 
+          onChange={(e) => setFilterCategory(e.target.value)}
+          style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '2px solid #d1d5db' }}
+        >
+          <option value="">All Categories</option>
+          {[...new Set(items.map(item => item.category))].filter(Boolean).map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+
+        <select 
+          value={sortField} 
+          onChange={(e) => setSortField(e.target.value)}
+          style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '2px solid #d1d5db' }}
+        >
+          <option value="name">Sort by Name</option>
+          <option value="price">Sort by Price</option>
+          <option value="expiry">Sort by Expiry</option>
+          <option value="added">Sort by Date Added</option>
+        </select>
+
+        <button 
+          onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
+          style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '2px solid #d1d5db' }}
+        >
+          {sortDirection === "asc" ? "↑ Asc" : "↓ Desc"}
+        </button>
+
+        {filterCategory && (
+          <button 
+            onClick={() => setFilterCategory("")}
+            style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '2px solid #dc2626', color: '#dc2626' }}
+          >
+            Clear Filter
+          </button>
+        )}
+      </div>
+
       {/* Table */}
       <div style={tableStyle}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -398,7 +458,7 @@ const Dashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {items.map((item, i) => (
+            {filteredItems.map((item, i) => (
               <tr 
                 key={item.id || i} 
                 style={rowStyle}
