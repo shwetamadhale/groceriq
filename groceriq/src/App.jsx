@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 import Suggest from "./pages/Suggest";
 import Insights from "./pages/Insights";
+import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -36,6 +37,13 @@ const App = () => {
           <Insights />
         </ProtectedRoute>
       } />
+
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <Profile />
+        </ProtectedRoute>
+      } />
+      
     </Routes>
   );
 };
