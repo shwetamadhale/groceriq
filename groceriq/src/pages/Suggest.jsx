@@ -7,6 +7,11 @@ const Suggest = () => {
   const [query, setQuery] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState({
+    toBuy: [],
+    toAvoid: [],
+    recipes: []
+  });
 
   const pantryRef = collection(db, "items");
 
@@ -22,6 +27,25 @@ const Suggest = () => {
     };
     fetchItems();
   }, []);
+
+  // Add this function to generate automatic suggestions
+  useEffect(() => {
+    const generateSuggestions = () => {
+      const toBuy = items.filter(item => 
+        (item.usage || "⭐") === "⭐⭐⭐⭐⭐" && 
+        (!item.quantity || item.quantity.toLowerCase().includes('low'))
+      ).slice(0, 5);
+
+      const toAvoid = items.filter(item => 
+        (item.usage || "⭐") === "⭐" && 
+        new Date(item.expiry) > new Date()
+      ).slice(0, 5);
+
+      setSuggestions({ toBuy, toAvoid, recipes: [] });
+    };
+
+    generateSuggestions();
+  }, [items]);
 
   // 🔍 Categorize based on pantry data
   const now = new Date();
@@ -160,6 +184,47 @@ const Suggest = () => {
           {response}
         </div>
       )}
+
+      {/* AI-Powered Recommendations */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-orange-700 mb-4">AI-Powered Recommendations</h2>
+        
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
+          {/* Items to Buy */}
+          <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+            <h3 className="font-semibold text-green-800 mb-3">🛒 Recommended Buys</h3>
+            {suggestions.toBuy.length > 0 ? (
+              <ul className="space-y-2">
+                {suggestions.toBuy.map(item => (
+                  <li key={item.id} className="text-green-700">• {item.name}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-green-600">All stocked up!</p>
+            )}
+          </div>
+
+          {/* Items to Avoid */}
+          <div className="bg-red-50 p-4 rounded-xl border border-red-200">
+            <h3 className="font-semibold text-red-800 mb-3">🚫 Avoid Buying</h3>
+            {suggestions.toAvoid.length > 0 ? (
+              <ul className="space-y-2">
+                {suggestions.toAvoid.map(item => (
+                  <li key={item.id} className="text-red-700">• {item.name}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-red-600">No items to avoid</p>
+            )}
+          </div>
+
+          {/* Quick Recipes */}
+          <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+            <h3 className="font-semibold text-blue-800 mb-3">🍳 Quick Recipes</h3>
+            <p className="text-blue-600">Ask AI for recipes using your ingredients!</p>
+          </div>
+        </div>
+      </div>
 
       {/* Smart Cards */}
       <div className="grid gap-6 md:grid-cols-2">
