@@ -5,35 +5,35 @@ const Landing = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="h-screen flex font-serif overflow-hidden relative">
+    <div className="h-screen flex font-sans overflow-hidden relative">
       {/* Left Section */}
-      <div className="w-1/2 flex flex-col justify-center px-20 bg-gradient-to-br from-lime-100 via-yellow-50 to-green-50 text-green-900 relative">
+      <div className="w-1/2 flex flex-col justify-center px-16 bg-gradient-to-br from-lime-100 to-lime-200 text-green-900 relative">
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 w-32 h-32 bg-lime-200 opacity-20 rounded-full -translate-x-16 -translate-y-16"></div>
         <div className="absolute bottom-0 right-0 w-24 h-24 bg-green-200 opacity-30 rounded-full translate-x-12 translate-y-12"></div>
         <div className="absolute top-1/3 right-8 w-16 h-16 border-4 border-green-200 opacity-30 rotate-45"></div>
         
-        {/* Header */}
-        <div className="mb-16 relative z-10">
+        {/* Brand Header */}
+        <div className="mb-12 relative z-10">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-14 h-14 bg-green-800 rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-white text-2xl font-bold">G</span>
             </div>
             <div>
-              <h2 className="text-4xl font-bold text-green-800">GrocerIQ</h2>
+              <h2 className="text-5xl font-bold text-green-800">GrocerIQ</h2>
               <div className="w-28 h-1.5 bg-gradient-to-r from-lime-400 to-green-500 rounded-full mt-2"></div>
             </div>
           </div>
-          <p className="text-xl text-green-700 font-semibold leading-relaxed max-w-lg">
+          <p className="text-xl text-green-700 leading-relaxed">
             Optimizing Your Kitchen for Less Waste and<br />
             More Flavor!
           </p>
         </div>
 
         {/* Main Heading */}
-        <div className="mb-20 relative z-10">
-          <h1 className="text-8xl font-black leading-[0.9] tracking-tight mb-8">
-            <span className="block text-green-900 transform hover:scale-105 transition-transform duration-300 cursor-default">
+        <div className="mb-16 relative z-10">
+          <h1 className="text-7xl font-bold leading-tight text-green-900">
+            <span className="block transform hover:scale-105 transition-transform duration-300 cursor-default">
               SAVE MONEY,
             </span>
             <span className="block text-lime-600 transform hover:scale-105 transition-transform duration-300 delay-75 cursor-default">
@@ -43,21 +43,21 @@ const Landing = () => {
               SAVE FOOD.
             </span>
           </h1>
-          <div className="w-32 h-2 bg-gradient-to-r from-lime-400 via-green-500 to-green-600 rounded-full shadow-lg"></div>
+          <div className="w-32 h-2 bg-gradient-to-r from-lime-400 via-green-500 to-green-600 rounded-full shadow-lg mt-4"></div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-8 relative z-10 mb-16">
+        {/* Action Buttons */}
+        <div className="flex gap-6 relative z-10">
           <button
             onClick={() => navigate("/signup")}
-            className="group bg-green-800 text-white px-12 py-5 text-lg font-bold tracking-wider hover:bg-green-900 transition-all duration-300 shadow-2xl hover:shadow-green-800/30 transform hover:-translate-y-2 hover:scale-105 relative overflow-hidden rounded-lg"
+            className="group bg-green-800 text-white px-8 py-4 text-lg font-medium rounded-lg transition-all duration-200 hover:bg-green-900 hover:scale-105 active:scale-95 shadow-lg hover:shadow-green-800/30 transform hover:-translate-y-1 relative overflow-hidden"
           >
             <span className="relative z-10">SIGN UP NOW</span>
             <div className="absolute inset-0 bg-gradient-to-r from-lime-400 to-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
           </button>
           <button
             onClick={() => navigate("/login")}
-            className="group bg-transparent border-3 border-green-800 text-green-800 px-12 py-5 text-lg font-bold tracking-wider hover:bg-green-800 hover:text-white transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 rounded-lg relative overflow-hidden"
+            className="group bg-transparent border-3 border-green-800 text-green-800 px-8 py-4 text-lg font-medium rounded-lg transition-all duration-200 hover:bg-green-800 hover:text-white hover:scale-105 active:scale-95 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 relative overflow-hidden"
           >
             <span className="relative z-10">RETURNING USER? LOGIN</span>
             <div className="absolute inset-0 bg-gradient-to-r from-green-700 to-green-900 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
@@ -65,7 +65,7 @@ const Landing = () => {
         </div>
 
         {/* Feature highlights */}
-        <div className="absolute bottom-10 left-20 flex gap-12 text-sm text-green-600 font-medium">
+        <div className="absolute bottom-10 left-16 flex gap-12 text-sm text-green-600 font-medium">
           <div className="flex items-center gap-3 group cursor-default">
             <div className="w-3 h-3 bg-lime-400 rounded-full animate-pulse shadow-md group-hover:scale-125 transition-transform duration-300"></div>
             <span className="group-hover:text-green-800 transition-colors duration-300">Smart Pantry Management</span>
@@ -74,10 +74,6 @@ const Landing = () => {
             <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse delay-200 shadow-md group-hover:scale-125 transition-transform duration-300"></div>
             <span className="group-hover:text-green-800 transition-colors duration-300">AI-Powered Suggestions</span>
           </div>
-          <div className="flex items-center gap-3 group cursor-default">
-            <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse delay-500 shadow-md group-hover:scale-125 transition-transform duration-300"></div>
-            <span className="group-hover:text-green-800 transition-colors duration-300">Reduce Food Waste</span>
-          </div>
         </div>
       </div>
 
@@ -85,7 +81,7 @@ const Landing = () => {
       <div className="w-1/2 h-full relative overflow-hidden group">
         <img
           src={foodImage}
-          alt="Delicious prepared meals showcasing fresh ingredients and vibrant colors"
+          alt="Fresh healthy meals with vibrant ingredients showcasing smart kitchen management"
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
           onError={(e) => {
             e.target.style.display = 'none';
@@ -104,12 +100,7 @@ const Landing = () => {
               <div className="absolute top-12 right-16 w-12 h-12 bg-gradient-to-br from-red-400 to-red-500 rounded-full shadow-lg animate-float-delayed"></div>
               <div className="absolute bottom-16 left-20 w-14 h-14 bg-gradient-to-br from-yellow-300 to-yellow-400 rounded-full shadow-lg animate-float-delayed-2"></div>
               <div className="absolute bottom-12 right-12 w-10 h-10 bg-gradient-to-br from-purple-300 to-purple-400 rounded-full shadow-lg animate-float-delayed-3"></div>
-              <div className="absolute top-20 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full shadow-lg animate-float-delayed-4"></div>
             </div>
-            
-            {/* Side elements */}
-            <div className="absolute -top-8 -left-16 w-20 h-20 bg-gradient-to-br from-red-300 to-red-400 rounded-full shadow-2xl border-4 border-white/50"></div>
-            <div className="absolute -bottom-4 -right-12 w-16 h-16 bg-gradient-to-br from-yellow-300 to-yellow-400 rounded-full shadow-2xl border-4 border-white/50"></div>
           </div>
           
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent flex items-end justify-center pb-16">
@@ -126,19 +117,11 @@ const Landing = () => {
         {/* Floating decorative elements */}
         <div className="absolute top-12 right-12 w-16 h-16 border-4 border-white/50 rotate-45 animate-spin-slow"></div>
         <div className="absolute bottom-24 left-12 w-12 h-12 border-4 border-white/40 rotate-12 animate-pulse"></div>
-        <div className="absolute top-1/3 right-1/4 w-8 h-8 bg-white/30 rounded-full animate-ping"></div>
         
         {/* Content overlay */}
         <div className="absolute bottom-8 left-8 bg-white/90 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-white/50 transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
           <h3 className="text-xl font-bold text-green-800 mb-2">Start Your Journey</h3>
           <p className="text-green-600 text-sm">Join thousands reducing food waste</p>
-        </div>
-      </div>
-
-      {/* Floating call-to-action */}
-      <div className="absolute bottom-8 right-8 animate-bounce z-20">
-        <div className="bg-white text-green-800 px-6 py-3 rounded-full shadow-2xl text-sm font-bold cursor-pointer hover:shadow-3xl hover:scale-110 transition-all duration-300 border-2 border-green-200">
-          Get Started →
         </div>
       </div>
 
@@ -173,21 +156,12 @@ const Landing = () => {
           animation-delay: 1.5s;
         }
         
-        .animate-float-delayed-4 {
-          animation: float 3s ease-in-out infinite;
-          animation-delay: 2s;
-        }
-        
         .animate-spin-slow {
           animation: spin-slow 10s linear infinite;
         }
         
         .border-3 {
           border-width: 3px;
-        }
-        
-        .shadow-3xl {
-          box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
         }
       `}</style>
     </div>
