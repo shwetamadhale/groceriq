@@ -37,9 +37,6 @@ const Signup = () => {
     <div className="min-h-screen bg-gradient-to-br from-orange-400 via-red-400 to-pink-400 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">G</span>
-          </div>
           <h2 className="text-3xl font-bold text-gray-800 mb-2">Join GrocerIQ</h2>
           <p className="text-gray-600">Create your account today</p>
         </div>
