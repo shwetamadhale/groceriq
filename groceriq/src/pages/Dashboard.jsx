@@ -17,16 +17,21 @@ const categoryOptions = [
   "Condiments", "Spices", "Household", "Other"
 ];
 
+// Add usage options at the top
+const usageOptions = ["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"];
+
 const Dashboard = () => {
   const [items, setItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [currentView, setCurrentView] = useState("suggestions");
+  const [currentView, setCurrentView] = useState("items");
+  // Update form state to include usage
   const [form, setForm] = useState({
     name: "",
     quantity: "",
     category: "",
     price: "",
-    expiry: ""
+    expiry: "",
+    usage: "⭐⭐" // Default to 2 stars
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -84,6 +89,7 @@ const Dashboard = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // Update addItem function to use form.usage
   const addItem = async () => {
     if (
       !form.name.trim() ||
@@ -104,7 +110,7 @@ const Dashboard = () => {
         ...form,
         price: parseFloat(form.price),
         added: new Date().toISOString().split("T")[0],
-        usage: "⭐⭐"
+        usage: form.usage || "⭐⭐" // Use the selected usage
       };
 
       await addDoc(collection(db, "items"), newItem);
@@ -114,7 +120,8 @@ const Dashboard = () => {
         quantity: "",
         category: "",
         price: "",
-        expiry: ""
+        expiry: "",
+        usage: "⭐⭐" // Reset to default
       });
     } catch (error) {
       console.error("Error adding item:", error);
@@ -194,7 +201,7 @@ const Dashboard = () => {
     borderRadius: '0.5rem',
     transition: 'all 0.2s',
     cursor: 'pointer',
-    border: '2px solid transparent'
+    border: '2px solid #365314'
   };
 
   const navLinkActiveStyle = {
@@ -349,25 +356,42 @@ const Dashboard = () => {
       {/* Header */}
       <div style={headerStyle}>
         <h1 style={titleStyle}>Hi {userName}!</h1>
-        <p style={subtitleStyle}>Here's your harvest.</p>
+        <p style={subtitleStyle}>Manage your pantry items</p>
         
-        {/* Navigation */}
+        {/* Navigation - Fixed to show "Your Items" as main view */}
         <div style={navStyle}>
           <div 
-            style={currentView === 'suggestions' ? navLinkActiveStyle : navLinkStyle}
-            onClick={() => setCurrentView('suggestions')}
+            style={{
+              ...navLinkStyle,
+              backgroundColor: '#365314',
+              color: 'white',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+            }}
           >
-            Suggestions
+            Your Items
           </div>
           <div 
-            style={currentView === 'insights' ? navLinkActiveStyle : navLinkStyle}
+            style={navLinkStyle}
+            onClick={() => navigate('/suggest')}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#4d7c0f'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+          >
+            AI Suggestions
+          </div>
+          <div 
+            style={navLinkStyle}
             onClick={() => navigate('/insights')}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#4d7c0f'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
           >
             Insights
           </div>
           <div 
-            style={currentView === 'profile' ? navLinkActiveStyle : navLinkStyle}
+            style={navLinkStyle}
             onClick={() => navigate('/profile')}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#4d7c0f'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
           >
             Profile
           </div>
@@ -501,11 +525,23 @@ const Dashboard = () => {
                   <button
                     style={usageButtonStyle}
                     onClick={() => updateUsage(item.id, item.usage || "⭐")}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                    title="Click to update usage rating"
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = '#f3f4f6';
+                      e.target.title = `Click to change rating (Current: ${item.usage || "⭐"})`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                    title={`Usage: ${item.usage || "⭐"} - Click to change`}
                   >
                     {item.usage || "⭐"}
+                    <span style={{
+                      fontSize: '0.75rem',
+                      marginLeft: '0.5rem',
+                      color: '#6b7280'
+                    }}>
+                      ({item.usage ? item.usage.length : 1}/5)
+                    </span>
                   </button>
                 </td>
                 <td style={tdStyle}>
@@ -613,7 +649,7 @@ const Dashboard = () => {
               disabled={loading}
             />
 
-            {/* ✅ Category dropdown */}
+            {/* Category dropdown */}
             <select
               name="category"
               value={form.category}
@@ -647,6 +683,26 @@ const Dashboard = () => {
               style={inputStyle}
               disabled={loading}
             />
+
+            {/* ✅ Usage Rating Dropdown */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#374151', fontWeight: '500' }}>
+                Usage Rating (How frequently will you use this?)
+              </label>
+              <select
+                name="usage"
+                value={form.usage || "⭐⭐"}
+                onChange={handleChange}
+                style={inputStyle}
+                disabled={loading}
+              >
+                {usageOptions.map((usage) => (
+                  <option key={usage} value={usage}>
+                    {usage} - {usage.length} star{usage.length > 1 ? 's' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
               <button
