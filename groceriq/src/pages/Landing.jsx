@@ -26,14 +26,15 @@ const Landing = () => {
 
         {/* Buttons */}
         <div className="flex gap-8">
+          // In Landing.jsx, update the buttons:
           <button
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/signup")}
             className="bg-[#4d5b2a] text-white px-8 py-4 text-lg font-bold tracking-wide hover:bg-[#39451f] transition-colors duration-200 shadow-lg"
           >
             SIGN UP NOW
           </button>
           <button
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/login")}
             className="bg-[#4d5b2a] text-white px-8 py-4 text-lg font-bold tracking-wide hover:bg-[#39451f] transition-colors duration-200 shadow-lg"
           >
             RETURNING USER? LOGIN
