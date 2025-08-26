@@ -7,7 +7,7 @@ import {
   doc,
   updateDoc
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
 
 // ✅ Category options array
@@ -30,8 +30,16 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [userName, setUserName] = useState("User");
 
   const navigate = useNavigate();
+
+  // Fetch user name
+  useEffect(() => {
+    if (auth.currentUser?.displayName) {
+      setUserName(auth.currentUser.displayName);
+    }
+  }, []);
 
   // Fetch items from Firebase
   useEffect(() => {
@@ -128,7 +136,7 @@ const Dashboard = () => {
     }
   };
 
-  // Styles (no changes made here)
+  // Styles
   const containerStyle = {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #f7fee7, #ecfccb, #d9f99d)',
@@ -177,27 +185,6 @@ const Dashboard = () => {
     transform: 'translateY(-2px)',
     boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
   };
-
-  const tableHeaderStyle = {
-    display: 'flex',
-    gap: '1rem',
-    marginBottom: '1rem',
-    flexWrap: 'wrap'
-  };
-
-  const headerButtonStyle = (isActive = false) => ({
-    padding: '0.75rem 1.5rem',
-    borderRadius: '2rem',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    border: 'none',
-    cursor: 'pointer',
-    backgroundColor: isActive ? '#166534' : '#22543d',
-    color: 'white',
-    transition: 'all 0.2s',
-    transform: isActive ? 'translateY(-2px)' : 'none',
-    boxShadow: isActive ? '0 4px 8px rgba(0,0,0,0.2)' : '0 2px 4px rgba(0,0,0,0.1)'
-  });
 
   const tableStyle = {
     width: '100%',
@@ -317,18 +304,218 @@ const Dashboard = () => {
     border: 'none'
   };
 
+  const deleteButtonStyle = {
+    backgroundColor: '#dc2626',
+    color: 'white',
+    border: 'none',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '0.375rem',
+    fontSize: '0.75rem',
+    cursor: 'pointer',
+    transition: 'all 0.2s'
+  };
+
+  const usageButtonStyle = {
+    backgroundColor: 'transparent',
+    border: 'none',
+    fontSize: '1.125rem',
+    cursor: 'pointer',
+    padding: '0.25rem',
+    borderRadius: '0.25rem',
+    transition: 'all 0.2s'
+  };
+
   return (
     <div style={containerStyle}>
-      <h1 style={titleStyle}>Smart Grocery Helper</h1>
+      {/* Header */}
+      <div style={headerStyle}>
+        <h1 style={titleStyle}>Hi {userName}!</h1>
+        <p style={subtitleStyle}>Here's your harvest.</p>
+        
+        {/* Navigation */}
+        <div style={navStyle}>
+          <div 
+            style={currentView === 'suggestions' ? navLinkActiveStyle : navLinkStyle}
+            onClick={() => setCurrentView('suggestions')}
+          >
+            Suggestions
+          </div>
+          <div 
+            style={currentView === 'insights' ? navLinkActiveStyle : navLinkStyle}
+            onClick={() => navigate('/insights')}
+          >
+            Insights
+          </div>
+          <div 
+            style={currentView === 'profile' ? navLinkActiveStyle : navLinkStyle}
+            onClick={() => navigate('/profile')}
+          >
+            Profile
+          </div>
+        </div>
+      </div>
 
+      {/* Error Message */}
+      {error && (
+        <div style={{
+          backgroundColor: '#fee2e2',
+          border: '1px solid #fca5a5',
+          color: '#dc2626',
+          padding: '1rem',
+          borderRadius: '0.5rem',
+          marginBottom: '1rem'
+        }}>
+          {error}
+          <button 
+            onClick={() => setError("")}
+            style={{
+              float: 'right',
+              background: 'none',
+              border: 'none',
+              color: '#dc2626',
+              cursor: 'pointer',
+              fontSize: '1.2rem'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Table */}
+      <div style={tableStyle}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={tableHeaderRowStyle}>
+              <th style={thStyle}>Item</th>
+              <th style={thStyle}>Quantity</th>
+              <th style={thStyle}>Category</th>
+              <th style={thStyle}>Price</th>
+              <th style={thStyle}>Expiry</th>
+              <th style={thStyle}>Date Added</th>
+              <th style={thStyle}>Usage</th>
+              <th style={thStyle}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, i) => (
+              <tr 
+                key={item.id || i} 
+                style={rowStyle}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+              >
+                <td style={tdStyle}>
+                  <div style={{ fontWeight: '600', color: '#166534' }}>
+                    {item.name}
+                  </div>
+                </td>
+                <td style={tdStyle}>{item.quantity}</td>
+                <td style={tdStyle}>
+                  <span style={{
+                    padding: '0.25rem 0.75rem',
+                    backgroundColor: '#dcfce7',
+                    color: '#166534',
+                    borderRadius: '1rem',
+                    fontSize: '0.75rem',
+                    fontWeight: '500'
+                  }}>
+                    {item.category}
+                  </span>
+                </td>
+                <td style={tdStyle}>
+                  <span style={{ fontWeight: '600', color: '#059669' }}>
+                    ${Number(item.price).toFixed(2)}
+                  </span>
+                </td>
+                <td style={tdStyle}>
+                  <span style={{
+                    color: new Date(item.expiry) <= new Date(Date.now() + 7*24*60*60*1000) ? '#dc2626' : '#374151',
+                    fontWeight: new Date(item.expiry) <= new Date(Date.now() + 7*24*60*60*1000) ? '600' : 'normal'
+                  }}>
+                    {item.expiry}
+                  </span>
+                </td>
+                <td style={tdStyle}>{item.added}</td>
+                <td style={tdStyle}>
+                  <button
+                    style={usageButtonStyle}
+                    onClick={() => updateUsage(item.id, item.usage || "⭐")}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="Click to update usage rating"
+                  >
+                    {item.usage || "⭐"}
+                  </button>
+                </td>
+                <td style={tdStyle}>
+                  <button
+                    style={deleteButtonStyle}
+                    onClick={() => deleteItem(item.id)}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#b91c1c'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#dc2626'}
+                    title="Delete item"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Empty State */}
+      {items.length === 0 && (
+        <div style={{
+          textAlign: 'center',
+          padding: '4rem 2rem',
+          backgroundColor: 'white',
+          borderRadius: '1rem',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🥬</div>
+          <h3 style={{ fontSize: '1.5rem', color: '#166534', marginBottom: '0.5rem' }}>
+            Your pantry is empty
+          </h3>
+          <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
+            Start building your harvest by adding your first item!
+          </p>
+          <button
+            onClick={() => setShowModal(true)}
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderRadius: '0.5rem',
+              backgroundColor: '#16a34a',
+              color: 'white',
+              border: 'none',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            Add Your First Item
+          </button>
+        </div>
+      )}
+
+      {/* Add Item Button */}
       <button
-        style={addButtonStyle}
         onClick={() => setShowModal(true)}
+        style={addButtonStyle}
+        onMouseEnter={(e) => {
+          e.target.style.backgroundColor = '#15803d';
+          e.target.style.transform = 'translateY(-2px)';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.backgroundColor = '#16a34a';
+          e.target.style.transform = 'translateY(0)';
+        }}
       >
         + Add Item
       </button>
 
-      {/* ✅ Modal */}
+      {/* Modal */}
       {showModal && (
         <div style={modalOverlayStyle} onClick={() => setShowModal(false)}>
           <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
@@ -366,7 +553,7 @@ const Dashboard = () => {
               disabled={loading}
             />
 
-            {/* ✅ Replaced input with dropdown for category */}
+            {/* ✅ Category dropdown */}
             <select
               name="category"
               value={form.category}
