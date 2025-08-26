@@ -1,6 +1,8 @@
+// App.jsx
 import { Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
-import Auth from "./pages/Auth";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 import Suggest from "./pages/Suggest";
@@ -12,7 +14,8 @@ const App = () => {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/auth" element={<Auth />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       
       <Route path="/dashboard" element={
         <ProtectedRoute>
@@ -43,7 +46,6 @@ const App = () => {
           <Profile />
         </ProtectedRoute>
       } />
-      
     </Routes>
   );
 };
