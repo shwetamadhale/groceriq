@@ -17,7 +17,7 @@ const Landing = () => {
         <div className="mb-12 relative z-10">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-14 h-14 bg-green-800 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-2xl font-bold">G</span>
+              <span className="text-white text-2xl font-bold"></span>
             </div>
             <div>
               <h2 className="text-5xl font-bold text-green-800">GrocerIQ</h2>
