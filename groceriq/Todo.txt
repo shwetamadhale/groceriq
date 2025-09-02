@@ -1,0 +1,23 @@
+for add new item
+have a drop down option especially for product, also title for the 
+
+profile page missing (let user edit their preferences, user info, etc) 
+
+insights styling 
+
+there should be no buttons for the titles of the table
+
+usage should be asked by the user to rate, like how frequently they think they will use the product, so usability on scale of 1-5, so 5 rated product will be given high priority for repurchase
+
+
+suggestions page separate - it should show siggestions with help of AI so what to buy, not buy, recipes, etc
+
+when showing the products the section should be Your products
+
+asking users their name/what should we call you at onboarding to display in place of Hi User Name!
+
+
+the table should be like airtable so user can use filters to select partuclar category, sort, etc
+
+ 
+
