@@ -1,0 +1,39 @@
+groceriq
+|--groceriq
+|   |--node_modules
+|   |--public
+|   |--components
+|   |  |--ProtectedRoute.jsx
+|   |--src
+|   |  |--assets
+|   |  |  |--landing.jpg
+|   |  |  |--react.svg
+|   |  |  |--spices.jpg
+|   |  |--pages
+|   |  |  |--Auth.jsx
+|   |  |  |--Dashboard.jsx
+|   |  |  |--Insights.jsx
+|   |  |  |--Landing.jsx
+|   |  |  |--Onboarding.jsx
+|   |  |  |--Profile.jsx
+|   |  |  |--Suggest.jsx
+|   |  |--App.css
+|   |  |--App.jsx
+|   |  |--firebase.js
+|   |  |--index.css
+|   |  |--main.jsx
+|   |--.env
+|   |--.gitignore
+|   |--eslint.config.js
+|   |--index.html
+|   |--package-lock.json
+|   |--package.json
+|   |--postcss.config.js
+|   |--README.md
+|   |--tailwind.config.js
+|   |--vite.config.js
+|--node_modules
+|--.gitignore
+|--design.pdf
+|--package-lock.json
+|--package.json
